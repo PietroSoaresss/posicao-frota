@@ -1,0 +1,148 @@
+<div class="pv-modal-body-inner">
+  <!-- IDENTIFICAÇÃO -->
+  <section class="pv-modal-section">
+    <div class="pv-modal-section-title">IDENTIFICAÇÃO</div>
+    <div class="pv-form-grid">
+      <app-form-field label="Código da posição" [span]="1">
+        <app-text-input [value]="viagem.codigoStr" [readonly]="true" [mono]="true"></app-text-input>
+      </app-form-field>
+      <app-form-field label="Status" [span]="1" [required]="true">
+        <app-select-input [value]="form().status" [options]="statusOpts()" (valueChange)="upd('status', $event)">
+        </app-select-input>
+      </app-form-field>
+    </div>
+  </section>
+
+  <!-- ROTA -->
+  <section class="pv-modal-section">
+    <div class="pv-modal-section-title-row">
+      <div class="pv-modal-section-title">ROTA</div>
+      <div class="pv-rota-mini-km pv-mono">
+        <app-icon name="route" [size]="12"></app-icon>
+        <input class="pv-rota-mini-input" [value]="form().km" (input)="onKmInput($event)" inputmode="numeric" /> km
+      </div>
+    </div>
+
+    <div class="pv-rota-edit">
+      <!-- Origem -->
+      <div class="pv-rota-edit-node">
+        <div class="pv-rota-dot pv-rota-dot-origin"></div>
+        <div class="pv-rota-edit-fields">
+          <div class="pv-rota-edit-tag">ORIGEM</div>
+          <div class="pv-form-grid pv-form-grid-tight">
+            <app-form-field label="Cidade" [span]="1" [required]="true">
+              <app-select-input [value]="toString(form().cod_cidade_origem)" [options]="cidadeOpts()"
+                placeholder="Selecione a cidade" [searchable]="true" (valueChange)="upd('cod_cidade_origem', $event)">
+              </app-select-input>
+            </app-form-field>
+            <app-form-field label="Cliente" [span]="1" [required]="true">
+              <app-select-input [value]="toString(form().cod_origem_empresa)" [options]="origemEmpresaOpts()"
+                placeholder="Selecione cliente" [searchable]="true" (valueChange)="upd('cod_origem_empresa', $event)">
+              </app-select-input>
+            </app-form-field>
+          </div>
+          <button class="pv-drill-btn" (click)="onOpen.emit({ kind: 'embarcador', papel: 'Origem' })">
+            <app-icon name="external" [size]="12"></app-icon>Abrir cadastro do cliente
+          </button>
+        </div>
+      </div>
+
+      <div class="pv-rota-edit-line">
+        <div class="pv-rota-edit-line-track"></div>
+      </div>
+
+      <!-- Destino -->
+      <div class="pv-rota-edit-node">
+        <div class="pv-rota-dot pv-rota-dot-dest"></div>
+        <div class="pv-rota-edit-fields">
+          <div class="pv-rota-edit-tag">DESTINO</div>
+          <div class="pv-form-grid pv-form-grid-tight">
+            <app-form-field label="Cidade" [span]="1">
+              <app-select-input [value]="toString(form().cod_cidade_destino)" [options]="cidadeOpts()"
+                placeholder="Selecione a cidade" [searchable]="true" (valueChange)="upd('cod_cidade_destino', $event)">
+              </app-select-input>
+            </app-form-field>
+            <app-form-field label="Cliente" [span]="1">
+              <app-select-input [value]="toString(form().cod_destino_empresa)" [options]="destinoEmpresaOpts()"
+                placeholder="Selecione cliente" [searchable]="true" (valueChange)="upd('cod_destino_empresa', $event)">
+              </app-select-input>
+            </app-form-field>
+          </div>
+          <button class="pv-drill-btn" (click)="onOpen.emit({ kind: 'embarcador', papel: 'Destino' })">
+            <app-icon name="external" [size]="12"></app-icon>Abrir cadastro do cliente
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROGRAMAÇÃO E VALORES -->
+  <section class="pv-modal-section">
+    <div class="pv-modal-section-title">PROGRAMAÇÃO E VALORES</div>
+    <div class="pv-form-grid">
+      <app-form-field label="Data de início" [span]="1" [required]="true">
+        <app-date-input [value]="form().data_inicio" (valueChange)="upd('data_inicio', $event)"></app-date-input>
+      </app-form-field>
+      <app-form-field label="Data de fim" [span]="1">
+        <app-date-input [value]="form().data_fim" (valueChange)="upd('data_fim', $event)"></app-date-input>
+      </app-form-field>
+      <app-form-field label="Valor do frete" [span]="1" [required]="true">
+        <app-money-input [value]="form().valor_frete" (valueChange)="upd('valor_frete', $event)"></app-money-input>
+      </app-form-field>
+      <app-form-field label="Valor do pedágio" [span]="1">
+        <app-money-input [value]="form().valor_pedagio" (valueChange)="upd('valor_pedagio', $event)"></app-money-input>
+      </app-form-field>
+    </div>
+  </section>
+
+  <!-- MOTORISTA -->
+  <section class="pv-modal-section">
+    <div class="pv-modal-section-title-row">
+      <div class="pv-modal-section-title">MOTORISTA</div>
+      <button class="pv-drill-btn" (click)="onOpen.emit({ kind: 'motorista' })">
+        <app-icon name="external" [size]="12"></app-icon>Abrir cadastro
+      </button>
+    </div>
+    <app-form-field label="Motorista designado" [span]="1" [required]="true">
+      <app-select-input [value]="toString(form().cod_motorista)" [options]="motoristaOpts()"
+        placeholder="Selecione o motorista" [searchable]="true" (valueChange)="upd('cod_motorista', $event)">
+      </app-select-input>
+    </app-form-field>
+  </section>
+
+  <!-- VEÍCULOS -->
+  <section class="pv-modal-section">
+    <div class="pv-modal-section-title">VEÍCULOS</div>
+    <div class="pv-form-grid">
+      <app-form-field label="Cavalo" [span]="1">
+        <div class="pv-veic-pick">
+          <app-select-input [value]="toString(form().cod_cavalo)" [options]="cavaloOpts()"
+            placeholder="Selecione o cavalo" [searchable]="true" (valueChange)="upd('cod_cavalo', $event)">
+          </app-select-input>
+          <button class="pv-drill-btn" (click)="onOpen.emit({ kind: 'cavalo' })">
+            <app-icon name="external" [size]="12"></app-icon>Cadastro
+          </button>
+        </div>
+      </app-form-field>
+      <app-form-field label="Carreta" [span]="1">
+        <div class="pv-veic-pick">
+          <app-select-input [value]="toString(form().cod_carreta)" [options]="carretaOpts()"
+            placeholder="Selecione a carreta" [searchable]="true" (valueChange)="upd('cod_carreta', $event)">
+          </app-select-input>
+          <button class="pv-drill-btn" (click)="onOpen.emit({ kind: 'carreta' })">
+            <app-icon name="external" [size]="12"></app-icon>Cadastro
+          </button>
+        </div>
+      </app-form-field>
+    </div>
+  </section>
+
+  <!-- OBSERVAÇÕES -->
+  <section class="pv-modal-section">
+    <div class="pv-modal-section-title">OBSERVAÇÕES</div>
+    <app-form-field label="Anotações da viagem" [span]="1">
+      <textarea class="pv-input-control pv-textarea" rows="3" [value]="form().observacoes" (input)="onObsInput($event)"
+        placeholder="Ex: carga frágil, agendar com 2h de antecedência…"></textarea>
+    </app-form-field>
+  </section>
+</div>

@@ -1,0 +1,896 @@
+{
+  "info": {
+    "name": "Pavi API",
+    "description": "Collection do Pavi API. Faça Login primeiro — o token é salvo automaticamente na variavel de ambiente {{token}} e usado nos demais requests. Se a API subir em outra porta, ajuste {{baseUrl}} no environment antes de rodar os testes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Tem token', () => pm.expect(body.token).to.be.a('string').and.not.empty);",
+                  "pm.environment.set('token', body.token);",
+                  "console.log('Token salvo:', body.token.substring(0, 20) + '...');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Smoke Tests",
+      "description": "Teste rapido para validar autenticacao, acesso a rota protegida e bloqueio sem token.",
+      "item": [
+        {
+          "name": "01 - Login salva token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Retorna token JWT', () => {",
+                  "  pm.expect(body.token).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.token.split('.')).to.have.length(3);",
+                  "});",
+                  "pm.environment.set('token', body.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "02 - States exige autenticacao",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 sem token', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/states", "host": ["{{baseUrl}}"], "path": ["states"] }
+          }
+        },
+        {
+          "name": "03 - States com token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Retorna uma lista', () => pm.expect(body).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/states", "host": ["{{baseUrl}}"], "path": ["states"] }
+          }
+        },
+        {
+          "name": "04 - Login + validacao de rota protegida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 no login', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Retorna token JWT', () => {",
+                  "  pm.expect(body.token).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.token.split('.')).to.have.length(3);",
+                  "});",
+                  "pm.environment.set('token', body.token);",
+                  "",
+                  "pm.sendRequest({",
+                  "  url: `${pm.environment.get('baseUrl')}/states`,",
+                  "  method: 'GET',",
+                  "  header: { Authorization: `Bearer ${body.token}` }",
+                  "}, (err, res) => {",
+                  "  pm.test('GET /states nao falha', () => pm.expect(err).to.equal(null));",
+                  "  pm.test('GET /states autenticado retorna 200', () => pm.expect(res.code).to.eql(200));",
+                  "  const list = res.json();",
+                  "  pm.test('GET /states autenticado retorna array', () => pm.expect(list).to.be.an('array'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "States",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/states", "host": ["{{baseUrl}}"], "path": ["states"] }
+          }
+        },
+        {
+          "name": "Get by id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/states/1", "host": ["{{baseUrl}}"], "path": ["states", "1"] }
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"São Paulo\",\n  \"abbreviation\": \"SP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/states", "host": ["{{baseUrl}}"], "path": ["states"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"São Paulo\",\n  \"abbreviation\": \"SP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/states/1", "host": ["{{baseUrl}}"], "path": ["states", "1"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/states/1", "host": ["{{baseUrl}}"], "path": ["states", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cities",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/cities", "host": ["{{baseUrl}}"], "path": ["cities"] }
+          }
+        },
+        {
+          "name": "List by state",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/cities?stateId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["cities"],
+              "query": [{ "key": "stateId", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Get by id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/cities/1", "host": ["{{baseUrl}}"], "path": ["cities", "1"] }
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Campinas\",\n  \"state\": { \"id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/cities", "host": ["{{baseUrl}}"], "path": ["cities"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Campinas\",\n  \"state\": { \"id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/cities/1", "host": ["{{baseUrl}}"], "path": ["cities", "1"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/cities/1", "host": ["{{baseUrl}}"], "path": ["cities", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Manufacturers",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/manufacturers", "host": ["{{baseUrl}}"], "path": ["manufacturers"] }
+          }
+        },
+        {
+          "name": "Get by id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/manufacturers/1", "host": ["{{baseUrl}}"], "path": ["manufacturers", "1"] }
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Scania\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/manufacturers", "host": ["{{baseUrl}}"], "path": ["manufacturers"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Scania do Brasil\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/manufacturers/1", "host": ["{{baseUrl}}"], "path": ["manufacturers", "1"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/manufacturers/1", "host": ["{{baseUrl}}"], "path": ["manufacturers", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "VehicleModels",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/vehicle-models", "host": ["{{baseUrl}}"], "path": ["vehicle-models"] }
+          }
+        },
+        {
+          "name": "List by manufacturer",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/vehicle-models?manufacturerId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicle-models"],
+              "query": [{ "key": "manufacturerId", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Get by id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/vehicle-models/1", "host": ["{{baseUrl}}"], "path": ["vehicle-models", "1"] }
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"R450\",\n  \"manufacturer\": { \"id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/vehicle-models", "host": ["{{baseUrl}}"], "path": ["vehicle-models"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"R450 Streamline\",\n  \"manufacturer\": { \"id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/vehicle-models/1", "host": ["{{baseUrl}}"], "path": ["vehicle-models", "1"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/vehicle-models/1", "host": ["{{baseUrl}}"], "path": ["vehicle-models", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/companies", "host": ["{{baseUrl}}"], "path": ["companies"] }
+          }
+        },
+        {
+          "name": "Get by id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/companies/1", "host": ["{{baseUrl}}"], "path": ["companies", "1"] }
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"corporateName\": \"ACME Logistica Ltda\",\n  \"cnpj\": \"12.345.678/0001-90\",\n  \"zipCode\": \"13000-000\",\n  \"neighborhood\": \"Centro\",\n  \"street\": \"Av Brasil\",\n  \"complement\": \"Sala 10\",\n  \"number\": \"100\",\n  \"city\": { \"id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/companies", "host": ["{{baseUrl}}"], "path": ["companies"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"corporateName\": \"ACME Logistica S.A.\",\n  \"cnpj\": \"12.345.678/0001-90\",\n  \"zipCode\": \"13000-000\",\n  \"neighborhood\": \"Centro\",\n  \"street\": \"Av Brasil\",\n  \"complement\": \"Sala 10\",\n  \"number\": \"100\",\n  \"city\": { \"id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/companies/1", "host": ["{{baseUrl}}"], "path": ["companies", "1"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/companies/1", "host": ["{{baseUrl}}"], "path": ["companies", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Drivers",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/drivers", "host": ["{{baseUrl}}"], "path": ["drivers"] }
+          }
+        },
+        {
+          "name": "Get by id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/drivers/1", "host": ["{{baseUrl}}"], "path": ["drivers", "1"] }
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João da Silva\",\n  \"sex\": \"M\",\n  \"licenseNumber\": \"12345678901\",\n  \"birthDate\": \"1990-05-15\",\n  \"licenseExpiration\": \"2030-05-15\",\n  \"city\": { \"id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/drivers", "host": ["{{baseUrl}}"], "path": ["drivers"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João da Silva\",\n  \"sex\": \"M\",\n  \"licenseNumber\": \"99999999999\",\n  \"birthDate\": \"1990-05-15\",\n  \"licenseExpiration\": \"2035-05-15\",\n  \"city\": { \"id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/drivers/1", "host": ["{{baseUrl}}"], "path": ["drivers", "1"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/drivers/1", "host": ["{{baseUrl}}"], "path": ["drivers", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/vehicles", "host": ["{{baseUrl}}"], "path": ["vehicles"] }
+          }
+        },
+        {
+          "name": "List by type (cavalo)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/vehicles?type=cavalo",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles"],
+              "query": [{ "key": "type", "value": "cavalo" }]
+            }
+          }
+        },
+        {
+          "name": "List by type (carreta)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/vehicles?type=carreta",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles"],
+              "query": [{ "key": "type", "value": "carreta" }]
+            }
+          }
+        },
+        {
+          "name": "Get by id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/vehicles/1", "host": ["{{baseUrl}}"], "path": ["vehicles", "1"] }
+          }
+        },
+        {
+          "name": "Create (cavalo)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plate\": \"ABC1D23\",\n  \"type\": \"cavalo\",\n  \"chassis\": \"9BWZZZ377VT004251\",\n  \"renavam\": \"12345678901\",\n  \"modelYear\": 2024,\n  \"manufacturingYear\": 2023,\n  \"vehicleModel\": { \"id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/vehicles", "host": ["{{baseUrl}}"], "path": ["vehicles"] }
+          }
+        },
+        {
+          "name": "Create (carreta)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plate\": \"XYZ9Z88\",\n  \"type\": \"carreta\",\n  \"chassis\": \"CARRETA0001\",\n  \"renavam\": \"98765432100\",\n  \"modelYear\": 2024,\n  \"manufacturingYear\": 2024,\n  \"vehicleModel\": { \"id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/vehicles", "host": ["{{baseUrl}}"], "path": ["vehicles"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plate\": \"ABC1D23\",\n  \"type\": \"cavalo\",\n  \"chassis\": \"9BWZZZ377VT004251\",\n  \"renavam\": \"12345678901\",\n  \"modelYear\": 2025,\n  \"manufacturingYear\": 2024,\n  \"vehicleModel\": { \"id\": 1 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/vehicles/1", "host": ["{{baseUrl}}"], "path": ["vehicles", "1"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/vehicles/1", "host": ["{{baseUrl}}"], "path": ["vehicles", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Trips",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/trips", "host": ["{{baseUrl}}"], "path": ["trips"] }
+          }
+        },
+        {
+          "name": "List by status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/trips?status=EM_ANDAMENTO",
+              "host": ["{{baseUrl}}"],
+              "path": ["trips"],
+              "query": [{ "key": "status", "value": "EM_ANDAMENTO" }]
+            }
+          }
+        },
+        {
+          "name": "List by driver",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/trips?driverId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["trips"],
+              "query": [{ "key": "driverId", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Get by id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/trips/1", "host": ["{{baseUrl}}"], "path": ["trips", "1"] }
+          }
+        },
+        {
+          "name": "Create (com cavalo + carreta + origem + destino)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2026-05-01\",\n  \"endDate\": \"2026-05-03\",\n  \"freightValue\": 1500.00,\n  \"tollValue\": 120.50,\n  \"status\": \"EM_ANDAMENTO\",\n  \"driver\": { \"id\": 1 },\n  \"horse\": { \"id\": 1 },\n  \"trailer\": { \"id\": 2 },\n  \"origins\": [\n    { \"company\": { \"id\": 1 }, \"order\": 1 }\n  ],\n  \"destinations\": [\n    { \"company\": { \"id\": 1 }, \"order\": 1 }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/trips", "host": ["{{baseUrl}}"], "path": ["trips"] }
+          }
+        },
+        {
+          "name": "Create (só cavalo, sem carreta)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-06-02\",\n  \"freightValue\": 800.00,\n  \"tollValue\": 45.00,\n  \"status\": \"EM_ANDAMENTO\",\n  \"driver\": { \"id\": 1 },\n  \"horse\": { \"id\": 1 },\n  \"trailer\": null,\n  \"origins\": [\n    { \"company\": { \"id\": 1 }, \"order\": 1 }\n  ],\n  \"destinations\": [\n    { \"company\": { \"id\": 1 }, \"order\": 1 }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/trips", "host": ["{{baseUrl}}"], "path": ["trips"] }
+          }
+        },
+        {
+          "name": "Update (concluir)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2026-05-01\",\n  \"endDate\": \"2026-05-03\",\n  \"freightValue\": 1500.00,\n  \"tollValue\": 120.50,\n  \"status\": \"CONCLUIDA\",\n  \"driver\": { \"id\": 1 },\n  \"horse\": { \"id\": 1 },\n  \"trailer\": { \"id\": 2 },\n  \"origins\": [\n    { \"company\": { \"id\": 1 }, \"order\": 1 }\n  ],\n  \"destinations\": [\n    { \"company\": { \"id\": 1 }, \"order\": 1 }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/trips/1", "host": ["{{baseUrl}}"], "path": ["trips", "1"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/trips/1", "host": ["{{baseUrl}}"], "path": ["trips", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fluxo End-to-End (execute em ordem)",
+      "description": "Execute essas requisicoes em sequência para popular o banco do zero.",
+      "item": [
+        {
+          "name": "01 - Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('token', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"username\":\"admin\",\"password\":\"admin\"}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "02 - Create State",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('stateId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"São Paulo\",\"abbreviation\":\"SP\"}" },
+            "url": { "raw": "{{baseUrl}}/states", "host": ["{{baseUrl}}"], "path": ["states"] }
+          }
+        },
+        {
+          "name": "03 - Create City",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('cityId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"Campinas\",\"state\":{\"id\":{{stateId}}}}" },
+            "url": { "raw": "{{baseUrl}}/cities", "host": ["{{baseUrl}}"], "path": ["cities"] }
+          }
+        },
+        {
+          "name": "04 - Create Manufacturer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('manufacturerId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"Scania\"}" },
+            "url": { "raw": "{{baseUrl}}/manufacturers", "host": ["{{baseUrl}}"], "path": ["manufacturers"] }
+          }
+        },
+        {
+          "name": "05 - Create VehicleModel",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('vehicleModelId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"R450\",\"manufacturer\":{\"id\":{{manufacturerId}}}}" },
+            "url": { "raw": "{{baseUrl}}/vehicle-models", "host": ["{{baseUrl}}"], "path": ["vehicle-models"] }
+          }
+        },
+        {
+          "name": "06 - Create Vehicle (cavalo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('horseId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"plate\":\"ABC1D23\",\"type\":\"cavalo\",\"chassis\":\"9BWZZZ377VT004251\",\"renavam\":\"12345678901\",\"modelYear\":2024,\"manufacturingYear\":2023,\"vehicleModel\":{\"id\":{{vehicleModelId}}}}" },
+            "url": { "raw": "{{baseUrl}}/vehicles", "host": ["{{baseUrl}}"], "path": ["vehicles"] }
+          }
+        },
+        {
+          "name": "07 - Create Vehicle (carreta)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('trailerId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"plate\":\"XYZ9Z88\",\"type\":\"carreta\",\"chassis\":\"CARRETA0001\",\"renavam\":\"98765432100\",\"modelYear\":2024,\"manufacturingYear\":2024,\"vehicleModel\":{\"id\":{{vehicleModelId}}}}" },
+            "url": { "raw": "{{baseUrl}}/vehicles", "host": ["{{baseUrl}}"], "path": ["vehicles"] }
+          }
+        },
+        {
+          "name": "08 - Create Company",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('companyId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"corporateName\":\"ACME Logistica\",\"cnpj\":\"12.345.678/0001-90\",\"zipCode\":\"13000-000\",\"neighborhood\":\"Centro\",\"street\":\"Av Brasil\",\"complement\":\"Sala 10\",\"number\":\"100\",\"city\":{\"id\":{{cityId}}}}" },
+            "url": { "raw": "{{baseUrl}}/companies", "host": ["{{baseUrl}}"], "path": ["companies"] }
+          }
+        },
+        {
+          "name": "09 - Create Driver",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('driverId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"João da Silva\",\"sex\":\"M\",\"licenseNumber\":\"12345678901\",\"birthDate\":\"1990-05-15\",\"licenseExpiration\":\"2030-05-15\",\"city\":{\"id\":{{cityId}}}}" },
+            "url": { "raw": "{{baseUrl}}/drivers", "host": ["{{baseUrl}}"], "path": ["drivers"] }
+          }
+        },
+        {
+          "name": "10 - Create Trip (cavalo + carreta + origem + destino)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('tripId', pm.response.json().id);",
+                  "pm.test('Trip criada com origem e destino', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.origins.length).to.be.above(0);",
+                  "  pm.expect(body.destinations.length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"startDate\":\"2026-05-01\",\"endDate\":\"2026-05-03\",\"freightValue\":1500.00,\"tollValue\":120.50,\"status\":\"EM_ANDAMENTO\",\"driver\":{\"id\":{{driverId}}},\"horse\":{\"id\":{{horseId}}},\"trailer\":{\"id\":{{trailerId}}},\"origins\":[{\"company\":{\"id\":{{companyId}}},\"order\":1}],\"destinations\":[{\"company\":{\"id\":{{companyId}}},\"order\":1}]}" },
+            "url": { "raw": "{{baseUrl}}/trips", "host": ["{{baseUrl}}"], "path": ["trips"] }
+          }
+        },
+        {
+          "name": "11 - Verify filters (GET /trips?status=EM_ANDAMENTO)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/trips?status=EM_ANDAMENTO",
+              "host": ["{{baseUrl}}"],
+              "path": ["trips"],
+              "query": [{ "key": "status", "value": "EM_ANDAMENTO" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+<div class="trk-screen">
+  <div id="tracking-map" class="trk-map" [class.is-loading]="loading()"></div>
+
+  <div class="trk-overlay trk-top-left">
+    <div class="trk-title">
+      <app-icon name="map" [size]="16"></app-icon>
+      <h1>Rastreamento</h1>
+    </div>
+
+    <div class="trk-chips">
+      <button
+        type="button"
+        class="trk-chip trk-chip-default"
+        [class.is-active]="filter() === 'todos'"
+        (click)="toggleFilter('todos')"
+        title="Mostrar todas as viagens ativas"
+      >
+        <strong>{{ kpis().total }}</strong> ativas
+      </button>
+      <button
+        type="button"
+        class="trk-chip trk-chip-ok"
+        [class.is-active]="filter() === 'online'"
+        (click)="toggleFilter('online')"
+        title="Posição recente (até 30 min)"
+      >
+        <strong>{{ kpis().online }}</strong> online
+      </button>
+      <button
+        type="button"
+        class="trk-chip trk-chip-warn"
+        [class.is-active]="filter() === 'atrasados'"
+        (click)="toggleFilter('atrasados')"
+        title="Última posição há mais de 30 min"
+      >
+        <strong>{{ kpis().stale }}</strong> atrasados
+      </button>
+      <button
+        type="button"
+        class="trk-chip trk-chip-danger"
+        [class.is-active]="filter() === 'sem-posicao'"
+        (click)="toggleFilter('sem-posicao')"
+        title="Nenhum pacote Sascar recebido"
+      >
+        <strong>{{ kpis().missing }}</strong> sem posição
+      </button>
+      <span class="trk-chip trk-chip-info" title="Velocidade média dos veículos com posição">
+        <strong>{{ kpis().averageSpeed }}</strong> km/h méd.
+      </span>
+    </div>
+  </div>
+
+  <div class="trk-overlay trk-top-right">
+    <div class="trk-sync" *ngIf="status() as trackingStatus" [title]="syncTitle()">
+      <span class="trk-sync-dot" [ngClass]="syncDotClass()"></span>
+      <span class="trk-sync-label">Sascar</span>
+    </div>
+    <button class="trk-action" (click)="load()" [disabled]="loading() || syncing()" title="Recarregar dados">
+      <app-icon name="refresh" [size]="14"></app-icon>
+      <span>Atualizar</span>
+    </button>
+    <button class="trk-action trk-action-primary" (click)="syncNow()" [disabled]="loading() || syncing()">
+      <app-icon name="target" [size]="14"></app-icon>
+      <span>{{ syncing() ? 'Sincronizando...' : 'Sincronizar' }}</span>
+    </button>
+  </div>
+
+  <div class="trk-toast" *ngIf="error()">
+    <app-icon name="alert" [size]="16"></app-icon>
+    <span>{{ error() }}</span>
+  </div>
+
+  <div class="trk-loading" *ngIf="loading()">Carregando rastreamento...</div>
+
+  <div class="trk-empty" *ngIf="!loading() && filteredTrips().length === 0">
+    Nenhuma viagem ativa encontrada para os filtros atuais.
+  </div>
+
+  <button
+    type="button"
+    class="trk-panel-tab"
+    *ngIf="panelCollapsed()"
+    (click)="togglePanel()"
+    title="Mostrar painel de caminhões"
+  >
+    <app-icon name="arrow-r" [size]="14"></app-icon>
+    {{ filteredTrips().length }}
+  </button>
+
+  <aside class="trk-panel" [class.is-collapsed]="panelCollapsed()">
+    <div class="trk-panel-header">
+      <div class="trk-panel-heading">
+        <h2>Caminhões em rota</h2>
+        <span>{{ filteredTrips().length }} de {{ trips().length }} viagens</span>
+      </div>
+      <button type="button" class="trk-panel-close" (click)="togglePanel()" title="Recolher painel">
+        <app-icon name="close" [size]="14"></app-icon>
+      </button>
+    </div>
+
+    <div class="trk-search">
+      <app-icon name="search" [size]="14"></app-icon>
+      <input
+        type="text"
+        placeholder="Placa, motorista, viagem, origem..."
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)"
+      />
+      <button type="button" *ngIf="query() || filter() !== 'todos'" (click)="clearFilters()" title="Limpar busca e filtros">
+        <app-icon name="close" [size]="12"></app-icon>
+      </button>
+    </div>
+
+    <div class="trk-list">
+      <button
+        type="button"
+        class="trk-card"
+        *ngFor="let trip of filteredTrips()"
+        [ngClass]="healthClass(trip)"
+        [class.is-active]="isSelected(trip)"
+        (click)="selectTrip(trip)"
+      >
+        <div class="trk-card-head">
+          <span class="pv-mono-code">{{ trip.tripCode }}</span>
+          <span class="tracking-health" [ngClass]="healthClass(trip)">
+            {{ healthLabel(trip) }}
+          </span>
+        </div>
+        <div class="trk-card-main">
+          <strong>{{ trip.horsePlate }}</strong>
+          <span>{{ trip.driverName }}</span>
+        </div>
+        <div class="trk-card-route">
+          <span>{{ trip.originLabel }}</span>
+          <app-icon name="arrow-r" [size]="12"></app-icon>
+          <span>{{ trip.destinationLabel }}</span>
+        </div>
+        <div class="trk-card-meta">
+          <span>{{ locationLabel(trip.latestPosition) }}</span>
+          <span>{{ ageLabel(trip.latestPosition?.packetDateUtc) }}</span>
+        </div>
+      </button>
+    </div>
+
+    <div class="trk-detail" *ngIf="selectedTrip() as trip">
+      <div class="trk-detail-title">
+        <div>
+          <span class="pv-mono-code">{{ trip.tripCode }}</span>
+          <h3>{{ trip.horsePlate }}</h3>
+        </div>
+        <span class="tracking-health" [ngClass]="healthClass(trip)">
+          {{ healthLabel(trip) }}
+        </span>
+      </div>
+
+      <app-status-pill [status]="statusForPill(trip.status)" size="sm"></app-status-pill>
+
+      <dl>
+        <div>
+          <dt>Motorista</dt>
+          <dd>{{ trip.driverName }}</dd>
+        </div>
+        <div>
+          <dt>Carreta</dt>
+          <dd>{{ trip.trailerPlate || '-' }}</dd>
+        </div>
+        <div>
+          <dt>Origem</dt>
+          <dd>{{ trip.originLabel }}</dd>
+        </div>
+        <div>
+          <dt>Destino</dt>
+          <dd>{{ trip.destinationLabel }}</dd>
+        </div>
+        <div>
+          <dt>Última posição</dt>
+          <dd>{{ formatDateTime(trip.latestPosition?.packetDateUtc) }}</dd>
+        </div>
+        <div>
+          <dt>Localização</dt>
+          <dd>{{ locationLabel(trip.latestPosition) }}</dd>
+        </div>
+        <div>
+          <dt>Velocidade</dt>
+          <dd>{{ trip.latestPosition?.speed ?? '-' }} km/h</dd>
+        </div>
+        <div>
+          <dt>Ignição</dt>
+          <dd>{{ trip.latestPosition?.ignition === 1 ? 'Ligada' : trip.latestPosition ? 'Desligada' : '-' }}</dd>
+        </div>
+      </dl>
+    </div>
+  </aside>
+</div>

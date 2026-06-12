@@ -1,0 +1,82 @@
+<ng-container *ngIf="viagem as viagemData">
+  <div class="pv-overlay" (click)="close()"></div>
+  <div class="pv-modal-wrap" role="dialog" aria-modal="true" [attr.aria-label]="'Editar viagem'">
+    <div class="pv-modal pv-modal-edit">
+      <header class="pv-modal-header">
+        <div class="pv-modal-header-left">
+          <button *ngIf="view().kind !== 'viagem'" class="pv-icon-btn pv-icon-btn-light" (click)="goBack()" title="Voltar">
+            <app-icon name="chevron-r" [size]="16" [style]="{'transform':'rotate(180deg)'}"></app-icon>
+          </button>
+          <div>
+            <div class="pv-modal-kicker">
+              {{ kickserText }}
+              <span *ngIf="view().kind !== 'viagem'"> · <span style="opacity: 0.8">{{ codigoStr }}</span></span>
+            </div>
+            <div class="pv-modal-title">
+              <ng-container *ngIf="view().kind === 'viagem'">
+                <span class="pv-mono-code" style="color: #fff; font-size: 15px">{{ codigoStr }}</span>
+                <app-status-pill [status]="viagemData.status"></app-status-pill>
+              </ng-container>
+              <ng-container *ngIf="view().kind !== 'viagem'">
+                {{ titleText }}
+              </ng-container>
+            </div>
+          </div>
+        </div>
+        <button class="pv-icon-btn pv-icon-btn-light" (click)="close()" title="Fechar (Esc)">
+          <app-icon name="close" [size]="16"></app-icon>
+        </button>
+      </header>
+
+      <div class="pv-modal-body">
+        <app-viagem-form *ngIf="view().kind === 'viagem'" [viagem]="viagemData"
+          (onOpen)="openFromEvent($event)" (onDirty)="dirty.set(true)" (formChange)="formData.set($event)">
+        </app-viagem-form>
+
+        <app-motorista-form *ngIf="view().kind === 'motorista'" [motorista]="viagemData.motorista"
+          (onDirty)="dirty.set(true)" (formChange)="formData.set($event)">
+        </app-motorista-form>
+
+        <app-veiculo-form *ngIf="view().kind === 'cavalo'" [veiculo]="viagemData.cavalo" tipo="Cavalo"
+          (onDirty)="dirty.set(true)" (formChange)="formData.set($event)">
+        </app-veiculo-form>
+
+        <app-veiculo-form *ngIf="view().kind === 'carreta'" [veiculo]="viagemData.carreta" tipo="Carreta"
+          (onDirty)="dirty.set(true)" (formChange)="formData.set($event)">
+        </app-veiculo-form>
+
+        <app-embarcador-form *ngIf="view().kind === 'embarcador'"
+          [empresa]="view().papel === 'Origem' ? viagemData.origemEmpresa : viagemData.destinoEmpresa"
+          [papel]="view().papel!"
+          (onDirty)="dirty.set(true)" (formChange)="formData.set($event)">
+        </app-embarcador-form>
+      </div>
+
+      <footer class="pv-modal-footer">
+        <div class="pv-modal-footer-left">
+          <span *ngIf="dirty()" class="pv-dirty-mark">
+            <span class="pv-dirty-dot"></span> alterações não salvas
+          </span>
+        </div>
+        <div class="pv-modal-footer-right">
+          <ng-container *ngIf="view().kind === 'viagem'">
+            <button class="pv-btn-secondary" (click)="finalizarPosicao()" title="Finalizar e criar posição vazia">
+              Finalizar posição
+            </button>
+            <button *ngIf="confirmDelete()" class="pv-btn-secondary" (click)="cancelDelete()">Cancelar exclusão</button>
+            <button class="pv-btn-danger" (click)="delete()">
+              <app-icon name="trash" [size]="13"></app-icon>
+              {{ confirmDelete() ? 'Confirmar exclusão' : 'Excluir' }}
+            </button>
+          </ng-container>
+          <ng-container *ngIf="!confirmDelete()">
+            <button class="pv-btn-secondary" (click)="close()">Cancelar</button>
+            <button class="pv-btn-primary" (click)="save()">
+              <app-icon name="check" [size]="13"></app-icon>Salvar alterações
+            </button>
+          </ng-container>
+        </div>
+      </footer>
+    </div>
+  </div>
+</ng-container>
