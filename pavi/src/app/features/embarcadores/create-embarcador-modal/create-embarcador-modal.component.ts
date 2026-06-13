@@ -82,9 +82,8 @@ export class CreateEmbarcadorModalComponent implements OnInit {
   save() {
     const form = this.form();
 
-    const erro = this.validar(form);
-    if (erro) {
-      alert(erro);
+    if (!form.razao_social || !form.cnpj || !form.cep || !form.bairro || !form.rua || !form.numero || !form.cod_cidade) {
+      alert('Preencha todos os campos obrigatórios do cliente.');
       return;
     }
 
@@ -92,20 +91,6 @@ export class CreateEmbarcadorModalComponent implements OnInit {
       ...form,
       cod_cidade: Number(form.cod_cidade),
     });
-  }
-
-  /** Retorna a primeira mensagem de erro específica, ou null se estiver tudo válido. */
-  private validar(form: EmbarcadorFormData): string | null {
-    if (!form.razao_social.trim()) return 'Informe a razão social do cliente.';
-    if (!form.cnpj) return 'Informe o CNPJ.';
-    if (form.cnpj.length !== 14) return `O CNPJ deve ter 14 dígitos. Você informou ${form.cnpj.length}.`;
-    if (!form.cep) return 'Informe o CEP.';
-    if (form.cep.length !== 8) return `O CEP deve ter 8 dígitos. Você informou ${form.cep.length}.`;
-    if (!form.bairro.trim()) return 'Informe o bairro.';
-    if (!form.rua.trim()) return 'Informe a rua.';
-    if (!form.numero) return 'Informe o número do endereço.';
-    if (!form.cod_cidade) return 'Selecione a cidade.';
-    return null;
   }
 
   toString(val: any): string {

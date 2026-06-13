@@ -6,12 +6,11 @@ import { Empresa } from '../../core/models/models';
 import { PageTitleComponent } from '../../shared/components/page-title/page-title.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CreateEmbarcadorModalComponent } from './create-embarcador-modal/create-embarcador-modal.component';
-import { ConfirmDeleteEmbarcadorModalComponent } from './confirm-delete-embarcador-modal/confirm-delete-embarcador-modal.component';
 
 @Component({
   selector: 'app-embarcadores',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageTitleComponent, IconComponent, CreateEmbarcadorModalComponent, ConfirmDeleteEmbarcadorModalComponent],
+  imports: [CommonModule, FormsModule, PageTitleComponent, IconComponent, CreateEmbarcadorModalComponent],
   templateUrl: './embarcadores.component.html',
   styleUrls: ['./embarcadores.component.scss']
 })
@@ -23,8 +22,6 @@ export class EmbarcadoresComponent {
   sortDir = signal<'asc' | 'desc'>('asc');
   showCreate = signal(false);
   selectedEmpresa = signal<Empresa | null>(null);
-  deleteTarget = signal<Empresa | null>(null);
-  isDeleting = signal(false);
 
   empresas = this.data.EMPRESAS;
 
@@ -91,26 +88,6 @@ export class EmbarcadoresComponent {
   closeModal() {
     this.showCreate.set(false);
     this.selectedEmpresa.set(null);
-  }
-
-  openDeleteConfirm(e: Empresa) {
-    this.deleteTarget.set(e);
-  }
-
-  closeDeleteConfirm() {
-    if (this.isDeleting()) return;
-    this.deleteTarget.set(null);
-  }
-
-  async confirmDeleteEmpresa() {
-    const empresa = this.deleteTarget();
-    if (!empresa) return;
-
-    this.isDeleting.set(true);
-    const ok = await this.data.deleteEmpresa(empresa.codigo);
-    this.isDeleting.set(false);
-
-    if (ok) this.deleteTarget.set(null);
   }
 
   clearFilters() {

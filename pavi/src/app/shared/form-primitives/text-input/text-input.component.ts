@@ -12,8 +12,7 @@ import { IconComponent } from '../../components/icon/icon.component';
       <span *ngIf="icon" class="pv-input-icon"><app-icon [name]="icon" [size]="14"></app-icon></span>
       <span *ngIf="prefix" class="pv-input-affix pv-input-prefix">{{ prefix }}</span>
       <input [type]="type" class="pv-input-control" [value]="value" (input)="onInput($event)"
-        [attr.readonly]="readonly ? '' : null" [placeholder]="placeholder" [attr.inputmode]="inputMode || null"
-        [attr.maxlength]="maxLength != null ? maxLength : null" />
+        [attr.readonly]="readonly ? '' : null" [placeholder]="placeholder" [attr.inputmode]="inputMode || null" />
       <span *ngIf="suffix" class="pv-input-affix pv-input-suffix">{{ suffix }}</span>
     </div>
   `
@@ -28,7 +27,6 @@ export class TextInputComponent {
   @Input() icon: string = '';
   @Input() readonly: boolean = false;
   @Input() inputMode: string = '';
-  @Input() maxLength: number | null = null;
 
   @Output() valueChange = new EventEmitter<string>();
 

@@ -194,28 +194,6 @@ export class RastreamentoComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.selectedTrip()?.tripId === trip.tripId;
   }
 
-  toggleFilter(value: TrackingFilter): void {
-    this.filter.set(this.filter() === value ? 'todos' : value);
-  }
-
-  togglePanel(): void {
-    this.panelCollapsed.set(!this.panelCollapsed());
-  }
-
-  syncTitle(): string {
-    const s = this.status();
-    if (!s) return 'Sem dados de sincronização';
-    return `Última sync: ${this.formatDateTime(s.lastSync?.finishedAt ?? null)} | ${s.lastSync?.received ?? 0} posições`;
-  }
-
-  syncDotClass(): Record<string, boolean> {
-    const s = this.status();
-    return {
-      'is-active': !!s?.enabled,
-      'is-inactive': !s?.enabled,
-    };
-  }
-
   clearFilters(): void {
     this.query.set('');
     this.filter.set('todos');

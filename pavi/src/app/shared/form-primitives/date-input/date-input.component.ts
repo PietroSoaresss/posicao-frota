@@ -7,7 +7,6 @@ import {
   Output,
   computed,
   inject,
-  input,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -56,7 +55,7 @@ const MONTH_OPTIONS: SelectOption[] = [
         <button
           type="button"
           class="pv-input-control pv-date-display"
-          [class.is-placeholder]="!value()"
+          [class.is-placeholder]="!value"
           (click)="togglePicker()"
         >
           {{ displayValue() }}
@@ -129,7 +128,7 @@ const MONTH_OPTIONS: SelectOption[] = [
 
         <div class="pv-date-toolbar">
           <button type="button" class="pv-date-chip" (click)="setToday()">Hoje</button>
-          <button type="button" class="pv-date-chip" [disabled]="!value()" (click)="clearDate()">Limpar</button>
+          <button type="button" class="pv-date-chip" [disabled]="!value" (click)="clearDate()">Limpar</button>
           <button type="button" class="pv-date-chip is-primary" [disabled]="!canApply()" (click)="applyDraft()">
             Aplicar
           </button>
@@ -141,7 +140,7 @@ const MONTH_OPTIONS: SelectOption[] = [
 export class DateInputComponent {
   private readonly host = inject(ElementRef<HTMLElement>);
 
-  readonly value = input<string>('');
+  @Input() value: string = '';
   @Input() compact = false;
   @Output() valueChange = new EventEmitter<string>();
 
@@ -151,7 +150,7 @@ export class DateInputComponent {
   readonly draftDay = signal('');
   readonly monthOptions = MONTH_OPTIONS;
 
-  readonly displayValue = computed(() => this.formatDisplay(this.value()));
+  readonly displayValue = computed(() => this.formatDisplay(this.value));
   readonly yearOptions = computed(() => this.buildYearOptions());
   readonly canApply = computed(() => !!this.buildDraftIso());
   readonly dayOptions = computed(() => {
@@ -225,11 +224,11 @@ export class DateInputComponent {
     this.draftMonth.set('');
     this.draftDay.set('');
     this.valueChange.emit('');
-    this.isOpen.set(false);
+    this.closePicker();
   }
 
   private syncDraftFromValue() {
-    this.syncDraftFromIso(this.value());
+    this.syncDraftFromIso(this.value);
   }
 
   private syncDraftFromIso(iso: string) {
@@ -278,7 +277,7 @@ export class DateInputComponent {
 
   private buildYearOptions(): SelectOption[] {
     const currentYear = new Date().getFullYear();
-    const selectedYear = Number(this.draftYear()) || Number(this.value().slice(0, 4));
+    const selectedYear = Number(this.draftYear()) || Number(this.value.slice(0, 4));
     const fromYear = Math.min(1980, selectedYear ? selectedYear - 5 : currentYear - 20);
     const toYear = Math.max(currentYear + 15, selectedYear ? selectedYear + 5 : currentYear + 10);
     const options: SelectOption[] = [];

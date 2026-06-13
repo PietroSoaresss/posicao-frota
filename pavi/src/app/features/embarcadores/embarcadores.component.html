@@ -76,14 +76,9 @@
         <td class="pv-mono">{{ e.cnpj }}</td>
         <td class="pv-mono">{{ cidadeLabel(e.cod_cidade) }}</td>
         <td class="pv-td-actions">
-          <div class="pv-action-group">
-            <button class="pv-eye-btn" (click)="openEdit(e)" title="Ver detalhes">
-              <app-icon name="eye" [size]="15"></app-icon>
-            </button>
-            <button class="pv-eye-btn" (click)="openDeleteConfirm(e)" title="Excluir cliente">
-              <app-icon name="trash" [size]="15"></app-icon>
-            </button>
-          </div>
+          <button class="pv-eye-btn" (click)="openEdit(e)" title="Ver detalhes">
+            <app-icon name="eye" [size]="15"></app-icon>
+          </button>
         </td>
       </tr>
     </tbody>
@@ -108,11 +103,3 @@
   (onClose)="closeModal()"
   (onSave)="onSaveEmpresa($event)"
 ></app-create-embarcador-modal>
-
-<app-confirm-delete-embarcador-modal
-  *ngIf="deleteTarget()"
-  [empresa]="deleteTarget()!"
-  [isDeleting]="isDeleting()"
-  (onClose)="closeDeleteConfirm()"
-  (onConfirm)="confirmDeleteEmpresa()"
-></app-confirm-delete-embarcador-modal>

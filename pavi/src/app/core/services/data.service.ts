@@ -161,28 +161,10 @@ export class DataService {
     this._fretes.set(
       deliveries.map((delivery: any) => ({
         ...delivery,
-        date: this.dateFromApi(delivery.date),
-        paymentDate: this.dateFromApi(delivery.paymentDate),
-        deadline: this.dateFromApi(delivery.deadline),
         deliveryStatus: this.deliveryStatusFromApi(delivery.deliveryStatus),
         tollStatus: this.tollStatusFromApi(delivery.tollStatus),
       })) as Frete[]
     );
-  }
-
-  /** Normaliza qualquer formato de data vindo da API para 'YYYY-MM-DD' (ou '' se vazio). */
-  dateFromApi(value: any): string {
-    if (value == null || value === '') return '';
-    // Jackson pode mandar array [ano, mes, dia]
-    if (Array.isArray(value) && value.length >= 3) {
-      const [y, m, d] = value;
-      return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    }
-    // String: pega só a parte da data (descarta hora se houver 'T')
-    if (typeof value === 'string') {
-      return value.slice(0, 10);
-    }
-    return '';
   }
 
   async syncMotoristas(): Promise<void> {
