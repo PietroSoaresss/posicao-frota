@@ -1,0 +1,140 @@
+.users-kpis {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.users-filter-row {
+  grid-template-columns: 1fr auto;
+}
+
+.users-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid #f3c2c2;
+  border-radius: 6px;
+  background: #fdecec;
+  color: var(--pv-danger);
+  font-size: 12px;
+}
+
+.users-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.users-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--pv-accent);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.users-user-name {
+  font-weight: 600;
+}
+
+.users-user-meta {
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--pv-fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.users-role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid;
+}
+
+.users-role-admin {
+  color: var(--pv-danger);
+  background: #fdecec;
+  border-color: #f3c2c2;
+}
+
+.users-role-operador {
+  color: var(--pv-accent);
+  background: #e8f0fe;
+  border-color: #c2d7f5;
+}
+
+.users-actions-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.users-action-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.users-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  width: 30px;
+  padding: 0;
+  border: 1px solid var(--pv-border-strong);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--pv-fg);
+  font-size: 11.5px;
+  font-weight: 600;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.users-action-btn:hover {
+  background: var(--pv-hover);
+  border-color: var(--pv-accent);
+  color: var(--pv-accent);
+}
+
+.users-action-btn-danger:hover {
+  background: #fdecec;
+  border-color: var(--pv-danger);
+  color: var(--pv-danger);
+}
+
+.users-action-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.users-action-btn:disabled:hover {
+  background: #fff;
+  border-color: var(--pv-border-strong);
+  color: var(--pv-fg);
+}
+
+@media (max-width: 900px) {
+  .users-kpis,
+  .users-filter-row {
+    grid-template-columns: 1fr;
+  }
+
+  .users-actions-cell {
+    width: auto;
+  }
+
+  .users-action-group {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

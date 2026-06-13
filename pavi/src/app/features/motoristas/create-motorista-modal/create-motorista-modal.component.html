@@ -1,0 +1,77 @@
+<div class="pv-overlay" (click)="close()"></div>
+<div class="pv-modal-wrap" role="dialog" aria-modal="true" [attr.aria-label]="isEdit() ? 'Editar motorista' : 'Novo motorista'">
+  <div class="pv-modal pv-modal-edit">
+    <header class="pv-modal-header">
+      <div class="pv-modal-header-left">
+        <div>
+          <div class="pv-modal-kicker">{{ isEdit() ? 'EDITAR MOTORISTA' : 'NOVO MOTORISTA' }}</div>
+          <div class="pv-modal-title">
+            <div class="pv-entity-avatar" style="width: 28px; height: 28px; font-size: 11px; border-radius: 50%; background: rgba(255,255,255,0.2); color: #fff; display: grid; place-items: center; font-weight: 600;">{{ initials }}</div>
+          </div>
+        </div>
+      </div>
+      <button class="pv-icon-btn pv-icon-btn-light" (click)="close()" title="Fechar">
+        <app-icon name="close" [size]="16"></app-icon>
+      </button>
+    </header>
+
+    <div class="pv-modal-body">
+      <div class="pv-modal-body-inner">
+        <section class="pv-modal-section">
+          <div class="pv-cadastro-head">
+            <div class="pv-entity-avatar pv-entity-avatar-lg">{{ initials }}</div>
+            <div>
+              <div class="pv-cadastro-name">{{ form().nome || '—' }}</div>
+              <div class="pv-cadastro-sub">Motorista · código <span class="pv-mono">#{{ codigoStr }}</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="pv-modal-section">
+          <div class="pv-modal-section-title">DADOS PESSOAIS</div>
+          <div class="pv-form-grid">
+            <app-form-field label="Nome completo" [span]="2" [required]="true">
+              <app-text-input [value]="form().nome" icon="user" (valueChange)="upd('nome', $event)"></app-text-input>
+            </app-form-field>
+            <app-form-field label="Sexo" [span]="1">
+              <app-select-input [value]="form().sexo" [options]="sexoOpts" (valueChange)="upd('sexo', $event)"></app-select-input>
+            </app-form-field>
+            <app-form-field label="Cidade" [span]="1" [required]="true">
+              <app-select-input [value]="form().cod_cidade" [options]="cidadeOpts()"
+                placeholder="Selecione a cidade" (valueChange)="upd('cod_cidade', $event)" [searchable]="true">
+              </app-select-input>
+            </app-form-field>
+            <app-form-field label="Código" [span]="1" *ngIf="isEdit()">
+              <app-text-input [value]="codigoStr" [readonly]="true" [mono]="true"></app-text-input>
+            </app-form-field>
+            <app-form-field label="CNH" [span]="1" [required]="true">
+              <app-text-input [value]="form().cnh" [mono]="true" inputmode="numeric"
+                (valueChange)="upd('cnh', $event.replace(/\D/g, ''))"></app-text-input>
+            </app-form-field>
+            <app-form-field label="Validade CNH" [span]="1" [required]="true">
+              <app-date-input [value]="form().validade_cnh" (valueChange)="upd('validade_cnh', $event)"></app-date-input>
+            </app-form-field>
+            <app-form-field label="Data de Nascimento" [span]="1" [required]="true">
+              <app-date-input [value]="form().data_nascimento"
+                (valueChange)="upd('data_nascimento', $event)"></app-date-input>
+            </app-form-field>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <footer class="pv-modal-footer">
+      <div class="pv-modal-footer-left">
+        <span *ngIf="dirty()" class="pv-dirty-mark">
+          <span class="pv-dirty-dot"></span> alterações não salvas
+        </span>
+      </div>
+      <div class="pv-modal-footer-right">
+        <button class="pv-btn-secondary" (click)="close()">Cancelar</button>
+        <button class="pv-btn-primary" (click)="save()">
+          <app-icon name="check" [size]="13"></app-icon>{{ isEdit() ? 'Salvar alterações' : 'Criar motorista' }}
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>

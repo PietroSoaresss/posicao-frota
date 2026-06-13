@@ -1,0 +1,195 @@
+<app-page-title icon="money" [title]="'Fretes'" [count]="filtered().length">
+  <button class="pv-btn-secondary" (click)="exportToPdf()">
+    <app-icon name="download" [size]="14"></app-icon>Exportar
+  </button>
+  <button class="pv-btn-primary" (click)="openCreate()">
+    <app-icon name="plus" [size]="14"></app-icon>Novo frete
+  </button>
+</app-page-title>
+
+<!-- KPIs -->
+<div class="pv-kpi-strip">
+  <div class="pv-kpi pv-kpi-default">
+    <div class="pv-kpi-label">Total de fretes</div>
+    <div class="pv-kpi-value">{{ kpis().total }}</div>
+    <div class="pv-kpi-hint">cadastrados</div>
+  </div>
+  <div class="pv-kpi pv-kpi-info">
+    <div class="pv-kpi-label">Autorizados</div>
+    <div class="pv-kpi-value">{{ kpis().autorizados }}</div>
+    <div class="pv-kpi-hint">prontos para pagamento</div>
+  </div>
+  <div class="pv-kpi pv-kpi-ok">
+    <div class="pv-kpi-label">Bloqueados</div>
+    <div class="pv-kpi-value">{{ kpis().bloqueados }}</div>
+    <div class="pv-kpi-hint">canhoto NF pendente</div>
+  </div>
+  <div class="pv-kpi pv-kpi-err">
+    <div class="pv-kpi-label">Tratativas</div>
+    <div class="pv-kpi-value">{{ kpis().tratativas }}</div>
+    <div class="pv-kpi-hint">desacordo ou análise</div>
+  </div>
+  <div class="pv-kpi pv-kpi-default">
+    <div class="pv-kpi-label">Complementos</div>
+    <div class="pv-kpi-value">{{ kpis().complementos }}</div>
+    <div class="pv-kpi-hint">solicitados/aprovados</div>
+  </div>
+  <div class="pv-kpi pv-kpi-default">
+    <div class="pv-kpi-label">Prev/Parcial</div>
+    <div class="pv-kpi-value">{{ kpis().previstos }}</div>
+    <div class="pv-kpi-hint">previsão ou parcial</div>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="pv-filter-bar">
+  <div class="pv-filter-row pv-filter-row--extended">
+    <div class="pv-filter-field pv-filter-search">
+      <label>Buscar</label>
+      <div class="pv-input-wrap">
+        <app-icon name="search" [size]="14"></app-icon>
+        <input
+          type="text"
+          placeholder="Código, CT-e, embarque 2012-U, status..."
+          [value]="q()"
+          (input)="q.set($any($event.target).value)"
+        />
+      </div>
+    </div>
+    <div class="pv-filter-field">
+      <label>Data início</label>
+      <app-date-input [compact]="true" [value]="dataIni()" (valueChange)="dataIni.set($event)"></app-date-input>
+    </div>
+    <div class="pv-filter-field">
+      <label>Data fim</label>
+      <app-date-input [compact]="true" [value]="dataFim()" (valueChange)="dataFim.set($event)"></app-date-input>
+    </div>
+    <div class="pv-filter-field">
+      <label>Status</label>
+      <select [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+        <option *ngFor="let s of STATUS_FILTERS" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+    <button class="pv-btn-secondary pv-filter-clear" (click)="clearFilters()">
+      <app-icon name="close" [size]="14"></app-icon>Limpar
+    </button>
+  </div>
+</div>
+
+<!-- Estado de carregamento / erro -->
+<div *ngIf="isLoading()" class="pv-table-card" style="padding: 32px; text-align: center; color: var(--text-secondary);">
+  <app-icon name="route" [size]="20"></app-icon>
+  <span style="margin-left: 8px;">Carregando fretes…</span>
+</div>
+
+<div *ngIf="error() && !isLoading()" class="pv-table-card" style="padding: 24px;">
+  <div style="display: flex; align-items: center; gap: 8px; color: #c62828;">
+    <app-icon name="alert" [size]="16"></app-icon>
+    <span>{{ error() }}</span>
+  </div>
+  <button class="pv-btn-secondary" style="margin-top: 12px;" (click)="loadFretes()">
+    Tentar novamente
+  </button>
+</div>
+
+<!-- Tabela -->
+<div class="pv-table-card" *ngIf="!isLoading() && !error()">
+  <table class="pv-table pv-table-a">
+    <thead>
+    <tr>
+      <th class="pv-th-sort" [class.is-sorted]="isSorted('id')" (click)="toggleSort('id')" (dblclick)="clearSort()">
+        <span>Código</span>
+        <span class="pv-sort-caret" [class.is-active]="isSorted('id')">
+            <app-icon [name]="sortDirFor('id')" [size]="11"></app-icon>
+          </span>
+      </th>
+      <th>Status</th>
+      <th class="pv-th-sort" [class.is-sorted]="isSorted('date')" (click)="toggleSort('date')">
+        <span>Data</span>
+        <span class="pv-sort-caret" [class.is-active]="isSorted('date')">
+            <app-icon [name]="sortDirFor('date')" [size]="11"></app-icon>
+          </span>
+      </th>
+      <th>Posição</th>
+      <th>Tipo</th>
+      <th>CT-e</th>
+      <th>Embarque</th>
+      <th class="pv-th-sort" [class.is-sorted]="isSorted('deadline')" (click)="toggleSort('deadline')">
+        <span>Prazo</span>
+        <span class="pv-sort-caret" [class.is-active]="isSorted('deadline')">
+            <app-icon [name]="sortDirFor('deadline')" [size]="11"></app-icon>
+          </span>
+      </th>
+      <th class="pv-th-right pv-th-sort" [class.is-sorted]="isSorted('deliveryValue')" (click)="toggleSort('deliveryValue')">
+        <span>Valor</span>
+        <span class="pv-sort-caret" [class.is-active]="isSorted('deliveryValue')">
+            <app-icon [name]="sortDirFor('deliveryValue')" [size]="11"></app-icon>
+          </span>
+      </th>
+      <th class="pv-th-right">Pedágio</th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngIf="filtered().length === 0">
+      <td colspan="11" class="pv-empty">Nenhum frete encontrado com os filtros aplicados.</td>
+    </tr>
+    <tr
+      *ngFor="let f of filtered(); trackBy: trackByFrete"
+      class="pv-row pv-row-static"
+    >
+      <td class="pv-mono-code">{{ freteStr(f.id) }}</td>
+      <td>
+          <span
+            class="pv-status pv-status-sm"
+            [style.color]="statusMeta(f.deliveryStatus).fg"
+            [style.background]="statusMeta(f.deliveryStatus).bg"
+            [style.border-color]="statusMeta(f.deliveryStatus).border"
+          >
+            <span class="pv-status-dot" [style.background]="statusMeta(f.deliveryStatus).solid"></span>
+            {{ statusLabel(f.deliveryStatus) }}
+          </span>
+      </td>
+      <td class="pv-mono">{{ fmtData(f.date) }}</td>
+      <td class="pv-mono">
+          <span *ngIf="f.trip?.id" class="pv-mono-code" style="font-size: 12px;">
+            V-{{ f.trip!.id!.toString().padStart(4, '0') }}
+          </span>
+        <span *ngIf="!f.trip?.id" style="color: var(--text-secondary)">Sem vínculo</span>
+      </td>
+      <td>{{ f.deliveryType || '—' }}</td>
+      <td class="pv-mono">{{ f.cte || '—' }}</td>
+      <td>{{ f.boarding || '—' }}</td>
+      <td class="pv-mono">{{ fmtData(f.deadline) }}</td>
+      <td class="pv-mono pv-num is-emphasis">{{ brl(f.deliveryValue) }}</td>
+      <td class="pv-mono pv-num">{{ f.tollValue ? brl(f.tollValue) : '—' }}</td>
+      <td class="pv-td-actions">
+        <button class="pv-eye-btn" (click)="openEdit(f)" title="Editar frete">
+          <app-icon name="eye" [size]="15"></app-icon>
+        </button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <div class="pv-table-footer">
+    <div>
+      Mostrando <strong>{{ filtered().length }}</strong> de <strong>{{ fretes().length }}</strong> fretes
+    </div>
+    <div class="pv-pager">
+      <button class="pv-pager-btn" disabled>
+        <app-icon name="chevron-l" [size]="12"></app-icon>
+      </button>
+      <span class="pv-pager-info pv-mono">1 / 1</span>
+      <button class="pv-pager-btn" disabled>
+        <app-icon name="chevron-r" [size]="12"></app-icon>
+      </button>
+    </div>
+  </div>
+</div>
+
+<app-create-frete-modal
+  *ngIf="showCreate()"
+  [frete]="selectedFrete()"
+  (onClose)="closeModal()"
+  (onSave)="onSaveFrete($event)"
+></app-create-frete-modal>

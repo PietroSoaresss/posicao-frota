@@ -1,0 +1,160 @@
+<app-page-title icon="route" [title]="'Posição Frota'" [count]="filtered().length">
+  <button class="pv-btn-secondary" (click)="exportToPdf()">
+    <app-icon name="download" [size]="14"></app-icon>Exportar
+  </button>
+  <button class="pv-btn-primary" (click)="openCreate()">
+    <app-icon name="plus" [size]="14"></app-icon>Nova posição
+  </button>
+</app-page-title>
+
+<div class="pv-kpi-strip">
+  <div class="pv-kpi pv-kpi-default">
+    <div class="pv-kpi-label">Total de posições</div>
+    <div class="pv-kpi-value">{{ kpis().total }}</div>
+    <div class="pv-kpi-hint">frota monitorada</div>
+  </div>
+  <div class="pv-kpi pv-kpi-warn">
+    <div class="pv-kpi-label">Viajando</div>
+    <div class="pv-kpi-value">{{ kpis().viajando }}</div>
+    <div class="pv-kpi-hint">veículos em rota</div>
+  </div>
+  <div class="pv-kpi pv-kpi-info">
+    <div class="pv-kpi-label">Operação</div>
+    <div class="pv-kpi-value">{{ kpis().carregando }}</div>
+    <div class="pv-kpi-hint">carregando/descarregando</div>
+  </div>
+  <div class="pv-kpi pv-kpi-ok">
+    <div class="pv-kpi-label">Aguardando</div>
+    <div class="pv-kpi-value">{{ kpis().aguardando }}</div>
+    <div class="pv-kpi-hint">carga, descarga ou NF</div>
+  </div>
+  <div class="pv-kpi pv-kpi-default">
+    <div class="pv-kpi-label">Vazios</div>
+    <div class="pv-kpi-value">{{ kpis().vazios }}</div>
+    <div class="pv-kpi-hint">sem destino/carga</div>
+  </div>
+  <div class="pv-kpi pv-kpi-default">
+    <div class="pv-kpi-label">Folga</div>
+    <div class="pv-kpi-value">{{ kpis().folga }}</div>
+    <div class="pv-kpi-hint">parados ou carregado/folga</div>
+  </div>
+</div>
+
+<div class="pv-filter-bar">
+  <div class="pv-filter-row pv-filter-row--extended">
+    <div class="pv-filter-field pv-filter-search">
+      <label>Buscar</label>
+      <div class="pv-input-wrap">
+        <app-icon name="search" [size]="14"></app-icon>
+        <input type="text" placeholder="Motorista, placa, rota, cliente..." [value]="q()" (input)="onQInput($event)" />
+      </div>
+    </div>
+    <div class="pv-filter-field">
+      <label>Data início</label>
+      <app-date-input [compact]="true" [value]="dataIni()" (valueChange)="dataIni.set($event)"></app-date-input>
+    </div>
+    <div class="pv-filter-field">
+      <label>Data fim</label>
+      <app-date-input [compact]="true" [value]="dataFim()" (valueChange)="dataFim.set($event)"></app-date-input>
+    </div>
+    <div class="pv-filter-field">
+      <label>Status</label>
+      <select [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+        <option *ngFor="let s of STATUS_FILTERS" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+    <button class="pv-btn-secondary pv-filter-clear" (click)="clearFilters()">
+      <app-icon name="close" [size]="14"></app-icon>Limpar
+    </button>
+  </div>
+</div>
+
+<div class="pv-table-card">
+  <table class="pv-table pv-table-a">
+    <thead>
+      <tr>
+        <th class="pv-th-sort" [class.is-sorted]="isSorted('codigo')" (click)="toggleSort('codigo')" (dblclick)="clearSort()">
+          <span>Código</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('codigo')">
+            <app-icon [name]="sortDirFor('codigo')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th>Status</th>
+        <th class="pv-th-sort" (click)="toggleSort('data_inicio')">
+          <span>Início</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('data_inicio')">
+            <app-icon [name]="sortDirFor('data_inicio')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th>Motorista</th>
+        <th>Cavalo</th>
+        <th>Carreta</th>
+        <th>Rota</th>
+        <th>Cliente</th>
+        <th class="pv-th-sort pv-th-right" (click)="toggleSort('km')">
+          <span>KM</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('km')">
+            <app-icon [name]="sortDirFor('km')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th class="pv-th-sort pv-th-right" (click)="toggleSort('valor_frete')">
+          <span>Frete</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('valor_frete')">
+            <app-icon [name]="sortDirFor('valor_frete')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="filtered().length === 0">
+        <td colspan="11" class="pv-empty">Nenhuma posição encontrada com os filtros aplicados.</td>
+      </tr>
+      <tr *ngFor="let v of filtered(); let i = index; trackBy: trackByViagem" class="pv-row pv-row-static"
+        [class.is-focus]="focusIdx() === i" (mouseenter)="setFocus(i)">
+        <td class="pv-mono-code">{{ v.codigoStr }}</td>
+        <td><app-status-pill [status]="v.status" size="sm"></app-status-pill></td>
+        <td class="pv-mono">{{ fmtData(v.data_inicio) }}</td>
+        <td>{{ v.motorista?.nome }}</td>
+        <td class="pv-mono">{{ v.cavalo?.placa }}</td>
+        <td class="pv-mono">{{ v.carreta?.placa }}</td>
+        <td>
+          <span class="pv-rota-inline">
+            <span>{{ v.origemLabel }}</span>
+            <app-icon name="arrow-r" [size]="12"></app-icon>
+            <span>{{ v.destinoLabel || 'Sem destino' }}</span>
+          </span>
+        </td>
+        <td>{{ v.origemEmpresa?.razao_social }}</td>
+        <td class="pv-mono pv-num">{{ v.km.toLocaleString('pt-BR') }}</td>
+        <td class="pv-mono pv-num is-emphasis">{{ brl(v.valor_frete) }}</td>
+        <td class="pv-td-actions">
+          <button class="pv-eye-btn" (click)="openDetail(v)" title="Ver detalhes">
+            <app-icon name="eye" [size]="15"></app-icon>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="pv-table-footer">
+    <div>Mostrando <strong>{{ filtered().length }}</strong> de <strong>{{ viagens().length }}</strong> posições</div>
+    <div class="pv-pager">
+      <button class="pv-pager-btn" disabled>
+        <app-icon name="chevron-l" [size]="12"></app-icon>
+      </button>
+      <span class="pv-pager-info pv-mono">1 / 1</span>
+      <button class="pv-pager-btn" disabled>
+        <app-icon name="chevron-r" [size]="12"></app-icon>
+      </button>
+    </div>
+  </div>
+</div>
+
+<app-detail-modal
+  [viagem]="selected()"
+  (onClose)="closeDetail()"
+  (onDelete)="onDeletedViagem($event)"
+  (onSave)="onSavedDetail($event)"
+></app-detail-modal>
+
+<app-create-viagem-modal *ngIf="showCreate()" (onClose)="closeCreate()" (onSave)="onCreatedViagem($event)"></app-create-viagem-modal>

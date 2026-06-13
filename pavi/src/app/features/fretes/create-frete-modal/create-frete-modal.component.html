@@ -1,0 +1,201 @@
+<div class="pv-overlay" (click)="close()"></div>
+<div class="pv-modal-wrap" role="dialog" aria-modal="true" [attr.aria-label]="isEdit() ? 'Editar frete' : 'Novo frete'">
+  <div class="pv-modal pv-modal-edit">
+
+    <header class="pv-modal-header">
+      <div class="pv-modal-header-left">
+        <div>
+          <div class="pv-modal-kicker">{{ isEdit() ? 'EDITAR FRETE' : 'NOVO FRETE' }}</div>
+          <div class="pv-modal-title">
+            <span class="pv-mono-code" style="color: #fff; font-size: 15px;">
+              F-{{ isEdit() ? codigoStr() : '????' }}
+            </span>
+            <span
+              class="pv-status"
+              [style.color]="'#fff'"
+              [style.background]="'rgba(255,255,255,0.18)'"
+              [style.border-color]="'rgba(255,255,255,0.3)'"
+            >
+              <span class="pv-status-dot" style="background: #fff;"></span>
+              {{ form().deliveryStatus || 'Autorizado p/pgto' }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <button class="pv-icon-btn pv-icon-btn-light" (click)="close()" title="Fechar">
+        <app-icon name="close" [size]="16"></app-icon>
+      </button>
+    </header>
+
+    <div class="pv-modal-body">
+      <div class="pv-modal-body-inner">
+
+        <!-- VÍNCULO COM POSIÇÃO -->
+        <section class="pv-modal-section">
+          <div class="pv-modal-section-title">VÍNCULO COM POSIÇÃO</div>
+          <div class="pv-form-grid">
+            <app-form-field label="Posição frota" [span]="2">
+              <app-select-input
+                [value]="toString(form().trip_id)"
+                [options]="viagemOpts()"
+                placeholder="Opcional: vincular a uma posição para herdar motorista, placas e rota"
+                [searchable]="true"
+                (valueChange)="upd('trip_id', $event)"
+              ></app-select-input>
+            </app-form-field>
+          </div>
+        </section>
+
+        <!-- DADOS DO FRETE -->
+        <section class="pv-modal-section">
+          <div class="pv-modal-section-title">DADOS DO FRETE</div>
+          <div class="pv-form-grid">
+            <app-form-field label="Status" [span]="1" [required]="true">
+              <app-select-input
+                [value]="form().deliveryStatus"
+                [options]="STATUS_OPTS"
+                (valueChange)="upd('deliveryStatus', $event)"
+              ></app-select-input>
+            </app-form-field>
+            <app-form-field label="Tipo de frete" [span]="1">
+              <app-select-input
+                [value]="form().deliveryType"
+                [options]="DELIVERY_TYPE_OPTS"
+                placeholder="Selecione o tipo"
+                (valueChange)="upd('deliveryType', $event)"
+              ></app-select-input>
+            </app-form-field>
+            <app-form-field label="Valor do frete" [span]="1" [required]="true">
+              <app-money-input
+                [value]="form().deliveryValue"
+                (valueChange)="upd('deliveryValue', $event)"
+              ></app-money-input>
+            </app-form-field>
+            <app-form-field label="Data do frete" [span]="1" [required]="true">
+              <app-date-input
+                [value]="form().date"
+                (valueChange)="upd('date', $event)"
+              ></app-date-input>
+            </app-form-field>
+            <app-form-field label="Prazo de entrega" [span]="1">
+              <app-date-input
+                [value]="form().deadline"
+                (valueChange)="upd('deadline', $event)"
+              ></app-date-input>
+            </app-form-field>
+            <app-form-field label="Data de pagamento" [span]="1">
+              <app-date-input
+                [value]="form().paymentDate"
+                (valueChange)="upd('paymentDate', $event)"
+              ></app-date-input>
+            </app-form-field>
+            <app-form-field label="Embarque" [span]="2">
+              <app-text-input
+                [value]="form().boarding"
+                placeholder="Ex: 2012-U"
+                (valueChange)="upd('boarding', $event)"
+              ></app-text-input>
+            </app-form-field>
+          </div>
+        </section>
+
+        <!-- DOCUMENTAÇÃO FISCAL -->
+        <section class="pv-modal-section">
+          <div class="pv-modal-section-title">DOCUMENTAÇÃO FISCAL</div>
+          <div class="pv-form-grid">
+            <app-form-field label="CT-e" [span]="1">
+              <app-text-input
+                [value]="form().cte"
+                [mono]="true"
+                placeholder="Número do CT-e"
+                (valueChange)="upd('cte', $event)"
+              ></app-text-input>
+            </app-form-field>
+            <app-form-field label="CT-e complementar" [span]="1">
+              <app-text-input
+                [value]="form().complementaryCte"
+                [mono]="true"
+                placeholder="CT-e de complemento"
+                (valueChange)="upd('complementaryCte', $event)"
+              ></app-text-input>
+            </app-form-field>
+            <app-form-field label="ICMS (%)" [span]="1">
+              <app-money-input
+                [value]="form().icms"
+                (valueChange)="upd('icms', $event)"
+              ></app-money-input>
+            </app-form-field>
+            <app-form-field label="ICMS complementar" [span]="1">
+              <app-text-input
+                [value]="form().complementaryIcms"
+                placeholder="Observação sobre ICMS"
+                (valueChange)="upd('complementaryIcms', $event)"
+              ></app-text-input>
+            </app-form-field>
+          </div>
+        </section>
+
+        <!-- PEDÁGIO -->
+        <section class="pv-modal-section">
+          <div class="pv-modal-section-title">PEDÁGIO</div>
+          <div class="pv-form-grid">
+            <app-form-field label="Valor do pedágio" [span]="1">
+              <app-money-input
+                [value]="form().tollValue"
+                (valueChange)="upd('tollValue', $event)"
+              ></app-money-input>
+            </app-form-field>
+            <app-form-field label="Status do pedágio" [span]="1">
+              <app-select-input
+                [value]="form().tollStatus"
+                [options]="TOLL_STATUS_OPTS"
+                placeholder="Selecione"
+                (valueChange)="upd('tollStatus', $event)"
+              ></app-select-input>
+            </app-form-field>
+          </div>
+        </section>
+
+        <!-- COMPLEMENTOS E OBSERVAÇÕES -->
+        <section class="pv-modal-section">
+          <div class="pv-modal-section-title">COMPLEMENTOS E OBSERVAÇÕES</div>
+          <div class="pv-form-grid">
+            <app-form-field label="Entrega complementar" [span]="2">
+              <app-text-input
+                [value]="form().complementaryDelivery"
+                placeholder="Informações de entrega complementar"
+                (valueChange)="upd('complementaryDelivery', $event)"
+              ></app-text-input>
+            </app-form-field>
+            <app-form-field label="Observações" [span]="2">
+              <textarea
+                class="pv-input-control pv-textarea"
+                rows="3"
+                [value]="form().observations"
+                (input)="onTextInput('observations', $event)"
+                placeholder="Ex: carga frágil, requer refrigeração, contato no destino…"
+              ></textarea>
+            </app-form-field>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <footer class="pv-modal-footer">
+      <div class="pv-modal-footer-left">
+        <span *ngIf="dirty()" class="pv-dirty-mark">
+          <span class="pv-dirty-dot"></span> alterações não salvas
+        </span>
+      </div>
+      <div class="pv-modal-footer-right">
+        <button class="pv-btn-secondary" (click)="close()">Cancelar</button>
+        <button class="pv-btn-primary" (click)="save()">
+          <app-icon name="check" [size]="13"></app-icon>
+          {{ isEdit() ? 'Salvar alterações' : 'Criar frete' }}
+        </button>
+      </div>
+    </footer>
+
+  </div>
+</div>

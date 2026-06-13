@@ -1,0 +1,78 @@
+<main class="pv-login-page">
+  <section class="pv-login-hero" aria-label="Acesso interno PAVI">
+    <div class="pv-login-brand">
+      <img src="logo.png" alt="PAVI" class="pv-login-logo" />
+      <div>
+        <p class="pv-login-kicker">Gestão de frotas</p>
+        <h1>PAVI</h1>
+      </div>
+    </div>
+  </section>
+
+  <section class="pv-login-panel" aria-label="Formulário de login">
+    <div class="pv-login-panel-inner">
+      <div class="pv-login-mobile-brand">
+        <img src="logo.png" alt="PAVI" class="pv-login-logo" />
+        <div>
+          <p class="pv-login-kicker">Gestão de frotas</p>
+          <h1>PAVI</h1>
+        </div>
+      </div>
+
+      <div class="pv-login-card">
+        <div class="pv-login-card-brand">
+          <img src="logo.png" alt="PAVI" class="pv-login-card-logo" />
+          <div>
+            <strong>PAVI Transportes</strong>
+            <span>Operação de frota</span>
+          </div>
+        </div>
+
+        <div class="pv-login-card-head">
+          <div>
+            <p class="pv-login-kicker">Credenciais internas</p>
+            <h2>Acessar operação PAVI</h2>
+          </div>
+        </div>
+
+        <form class="pv-login-form" (ngSubmit)="submit()" novalidate>
+          <label class="pv-login-field">
+            <span>Usuário PAVI</span>
+            <div class="pv-login-input">
+              <app-icon name="user" [size]="16"></app-icon>
+              <input type="text" autocomplete="username" placeholder="Informe seu usuário" [ngModel]="username()"
+                (ngModelChange)="username.set($event)" name="username" />
+            </div>
+          </label>
+
+          <label class="pv-login-field">
+            <span>Senha</span>
+            <div class="pv-login-input">
+              <app-icon name="settings" [size]="16"></app-icon>
+              <input type="password" autocomplete="current-password" placeholder="Digite sua senha"
+                [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" />
+            </div>
+          </label>
+
+          <p *ngIf="displayError()" class="pv-login-error" role="alert">
+            <app-icon name="alert" [size]="15"></app-icon>
+            <span>{{ displayError() }}</span>
+          </p>
+
+          <button class="pv-login-submit" type="submit" [disabled]="isSubmitting()">
+            <span>{{ isSubmitting() ? 'Validando acesso...' : 'Entrar na operação' }}</span>
+            <app-icon name="arrow-r" [size]="16"></app-icon>
+          </button>
+        </form>
+
+        <div class="pv-login-meta">
+          <span>Viagens</span>
+          <span class="pv-login-meta-dot"></span>
+          <span>Frota</span>
+          <span class="pv-login-meta-dot"></span>
+          <span>Fretes</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

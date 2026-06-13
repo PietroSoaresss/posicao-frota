@@ -1,0 +1,96 @@
+<div class="pv-overlay" (click)="close()"></div>
+<div class="pv-modal-wrap" role="dialog" aria-modal="true" [attr.aria-label]="isEdit() ? 'Editar usuário' : 'Novo usuário'">
+  <div class="pv-modal pv-modal-edit">
+    <header class="pv-modal-header">
+      <div class="pv-modal-header-left">
+        <div>
+          <div class="pv-modal-kicker">{{ isEdit() ? 'EDITAR USUÁRIO' : 'NOVO USUÁRIO' }}</div>
+          <div class="pv-modal-title">
+            <div class="pv-entity-avatar"
+              style="width: 28px; height: 28px; font-size: 11px; border-radius: 50%; background: rgba(255,255,255,0.2); color: #fff; display: grid; place-items: center; font-weight: 600;">
+              {{ initials }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="pv-icon-btn pv-icon-btn-light" (click)="close()" title="Fechar">
+        <app-icon name="close" [size]="16"></app-icon>
+      </button>
+    </header>
+
+    <div class="pv-modal-body">
+      <div class="pv-modal-body-inner">
+        <section class="pv-modal-section">
+          <div class="pv-cadastro-head">
+            <div class="pv-entity-avatar pv-entity-avatar-lg">{{ initials }}</div>
+            <div>
+              <div class="pv-cadastro-name">{{ form().username || '—' }}</div>
+              <div class="pv-cadastro-sub">
+                Usuário · perfil {{ roleLabel(form().role) }}
+                <span *ngIf="isEdit()">· código <span class="pv-mono">#{{ codigoStr }}</span></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="pv-modal-section">
+          <div class="pv-modal-section-title">DADOS DE ACESSO</div>
+          <div class="pv-form-grid">
+            <app-form-field label="Username" [span]="2" [required]="true"
+              [hint]="isSelf() ? 'Se você alterar seu próprio username, será necessário entrar novamente.' : ''">
+              <app-text-input [value]="form().username" icon="user" [mono]="true" placeholder="Digite o username"
+                (valueChange)="upd('username', $event)"></app-text-input>
+            </app-form-field>
+
+            <app-form-field label="Perfil" [span]="1" [required]="true"
+              [hint]="isSelf() ? 'Seu perfil administrativo não pode ser rebaixado nesta tela.' : ''">
+              <app-select-input [value]="form().role" [options]="roleOptions"
+                (valueChange)="upd('role', $event)"></app-select-input>
+            </app-form-field>
+
+            <app-form-field label="Código" [span]="1" *ngIf="isEdit()">
+              <app-text-input [value]="codigoStr" [readonly]="true" [mono]="true"></app-text-input>
+            </app-form-field>
+
+            <app-form-field *ngIf="!isEdit()" label="Senha" [span]="1" [required]="true" hint="Mínimo de 6 caracteres">
+              <app-text-input [value]="form().password" type="password" placeholder="Digite a senha"
+                (valueChange)="upd('password', $event)"></app-text-input>
+            </app-form-field>
+
+            <app-form-field *ngIf="!isEdit()" label="Confirmar senha" [span]="1" [required]="true">
+              <app-text-input [value]="form().confirmPassword" type="password" placeholder="Repita a senha"
+                (valueChange)="upd('confirmPassword', $event)"></app-text-input>
+            </app-form-field>
+          </div>
+
+          <div *ngIf="isEdit()" class="users-modal-note">
+            A senha não é alterada nesta edição.
+          </div>
+
+          <div *ngIf="isSelf()" class="users-modal-note users-modal-note-admin">
+            Seu usuário atual deve permanecer com perfil administrador.
+          </div>
+
+          <div *ngIf="errorMessage" class="users-modal-error" role="alert">
+            <app-icon name="alert" [size]="14"></app-icon>
+            <span>{{ errorMessage }}</span>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <footer class="pv-modal-footer">
+      <div class="pv-modal-footer-left">
+        <span *ngIf="dirty()" class="pv-dirty-mark">
+          <span class="pv-dirty-dot"></span> alterações não salvas
+        </span>
+      </div>
+      <div class="pv-modal-footer-right">
+        <button class="pv-btn-secondary" (click)="close()">Cancelar</button>
+        <button class="pv-btn-primary" (click)="save()">
+          <app-icon name="check" [size]="13"></app-icon>{{ isEdit() ? 'Salvar alterações' : 'Criar usuário' }}
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>

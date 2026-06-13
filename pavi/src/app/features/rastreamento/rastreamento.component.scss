@@ -1,0 +1,8 @@
+:host {
+  display: block;
+}
+
+/* The rastreamento screen styles (.trk-*) live in the global styles.scss,
+   next to the Leaflet marker/health rules they share — see "RASTREAMENTO"
+   there. They are global because the map markers are rendered outside this
+   component's view encapsulation, and to stay under the component style budget. */
