@@ -1,0 +1,50 @@
+<div class="pv-overlay" (click)="close()"></div>
+<div class="pv-modal-wrap" role="dialog" aria-modal="true" aria-label="Confirmar exclusão de usuário">
+  <div class="pv-modal users-confirm-modal">
+    <header class="pv-modal-header users-confirm-header">
+      <div class="pv-modal-header-left">
+        <div class="users-confirm-icon">
+          <app-icon name="trash" [size]="18"></app-icon>
+        </div>
+        <div>
+          <div class="pv-modal-kicker">EXCLUIR USUÁRIO</div>
+          <div class="pv-modal-title">Confirme a remoção do cadastro</div>
+        </div>
+      </div>
+      <button class="pv-icon-btn pv-icon-btn-light" (click)="close()" title="Fechar">
+        <app-icon name="close" [size]="16"></app-icon>
+      </button>
+    </header>
+
+    <div class="pv-modal-body">
+      <section class="pv-modal-section">
+        <div class="pv-cadastro-head">
+          <div class="pv-entity-avatar pv-entity-avatar-lg users-confirm-avatar">{{ initials }}</div>
+          <div>
+            <div class="pv-cadastro-name">{{ usuario.username }}</div>
+            <div class="pv-cadastro-sub">
+              Usuário {{ roleLabel(usuario.role).toLowerCase() }} · código <span class="pv-mono">#{{ usuario.codigo.toString().padStart(3, '0') }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="users-confirm-warning">
+          <app-icon name="alert" [size]="14"></app-icon>
+          <span>Essa ação remove o usuário permanentemente e não pode ser desfeita.</span>
+        </div>
+      </section>
+    </div>
+
+    <footer class="pv-modal-footer">
+      <div class="pv-modal-footer-left">
+        <span class="users-confirm-footnote">Revise o cadastro antes de excluir.</span>
+      </div>
+      <div class="pv-modal-footer-right">
+        <button class="pv-btn-secondary" (click)="close()" [disabled]="isDeleting">Cancelar</button>
+        <button class="pv-btn-danger" (click)="confirm()" [disabled]="isDeleting">
+          <app-icon name="trash" [size]="13"></app-icon>{{ isDeleting ? 'Excluindo...' : 'Excluir usuário' }}
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>

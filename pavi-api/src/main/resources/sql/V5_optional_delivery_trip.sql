@@ -1,0 +1,1 @@
+ALTER TABLE delivery ALTER COLUMN trip_id DROP NOT NULL;

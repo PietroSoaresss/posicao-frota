@@ -1,0 +1,16 @@
+.pv-empresa-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pv-empresa-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: var(--pv-hover);
+  color: var(--pv-accent);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}

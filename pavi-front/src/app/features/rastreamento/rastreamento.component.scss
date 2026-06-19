@@ -1,0 +1,11 @@
+/* Do NOT add `:host { display: ... }` here. The host layout (flex column,
+   full viewport height) is defined globally as `app-rastreamento { display: flex; … }`
+   in styles.scss. Under emulated encapsulation a `:host` rule compiles to an
+   attribute selector (specificity 0,1,0) that outranks that global type selector
+   (0,0,1) — a `display: block` here stops the host from flexing, which collapses
+   the map grid to its content height and makes the map track the side list. */
+
+/* The rastreamento screen styles (.trk-*) live in the global styles.scss,
+   next to the Leaflet marker/health rules they share — see "RASTREAMENTO"
+   there. They are global because the map markers are rendered outside this
+   component's view encapsulation, and to stay under the component style budget. */

@@ -1,0 +1,87 @@
+<main class="pv-login">
+  <section class="pv-login-left" aria-label="PAVI — Sistema de Gestão de Transportes">
+    <div class="pv-login-left-inner">
+      <div class="pv-login-wordmark pv-anim" style="--d: 0ms">
+        <img src="logo.png" alt="" class="pv-login-logo" />
+        <span class="pv-login-wm-text">PAVI<span class="pv-login-wm-sep">·</span>TMS</span>
+      </div>
+
+      <div class="pv-login-feature">
+        <div class="pv-login-headline-block pv-anim" style="--d: 60ms">
+          <h1 class="pv-login-headline">
+            Central de <span class="pv-login-headline-accent">operações</span> da frota
+          </h1>
+        </div>
+
+        <figure class="pv-login-photo pv-anim" style="--d: 120ms">
+          <img src="pavi-sede.jpg" alt="Sede da PAVI" />
+        </figure>
+      </div>
+
+      <div class="pv-login-ops">
+        <p class="pv-login-status pv-anim" style="--d: 140ms">
+          <span class="pv-login-status-dot" aria-hidden="true"></span>
+          <span class="pv-login-status-label">Sistema operacional</span>
+          <span class="pv-login-status-time">{{ clock() }} BRT</span>
+        </p>
+
+        <div class="pv-login-route pv-anim" style="--d: 200ms" aria-hidden="true">
+          <div class="pv-login-route-head">
+            <span>ORIGEM</span>
+            <span>DESTINO</span>
+          </div>
+          <div class="pv-login-route-track">
+            <app-icon name="truck" [size]="14" class="pv-login-route-truck"></app-icon>
+            <span class="pv-login-route-dot"></span>
+            <span class="pv-login-route-dash"></span>
+            <span class="pv-login-route-ring"></span>
+          </div>
+          <div class="pv-login-route-coords">
+            <span>-23.55, -46.63</span>
+            <span>-25.43, -49.27</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pv-login-form-pane" aria-label="Formulário de login">
+    <div class="pv-login-form-block pv-anim" style="--d: 220ms">
+      <p class="pv-login-kicker">Acesso restrito</p>
+      <p class="pv-login-intro">Entre com suas credenciais para acessar viagens, fretes e rastreamento.</p>
+
+      <form class="pv-login-form" (ngSubmit)="submit()" novalidate>
+        <label class="pv-login-field pv-anim" style="--d: 280ms">
+          <span class="pv-login-field-label">Usuário</span>
+          <div class="pv-login-input">
+            <app-icon name="user" [size]="16"></app-icon>
+            <input type="text" autocomplete="username" placeholder="seu.usuario" [ngModel]="username()"
+              (ngModelChange)="username.set($event)" name="username" />
+          </div>
+        </label>
+
+        <label class="pv-login-field pv-anim" style="--d: 320ms">
+          <span class="pv-login-field-label">Senha</span>
+          <div class="pv-login-input">
+            <app-icon name="lock" [size]="16"></app-icon>
+            <input type="password" autocomplete="current-password" placeholder="••••••••"
+              [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" />
+          </div>
+        </label>
+
+        <p *ngIf="displayError()" class="pv-login-error" role="alert">
+          <app-icon name="alert" [size]="15"></app-icon>
+          <span>{{ displayError() }}</span>
+        </p>
+
+        <button class="pv-login-submit pv-anim" style="--d: 360ms" type="submit" [disabled]="isSubmitting()">
+          <span>{{ isSubmitting() ? 'Autenticando…' : 'Entrar' }}</span>
+          <app-icon *ngIf="!isSubmitting()" name="arrow-r" [size]="16"></app-icon>
+          <span *ngIf="isSubmitting()" class="pv-login-spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+
+      <p class="pv-login-foot">PAVI<span class="pv-login-foot-sep">·</span>Sistema de Gestão de Transportes</p>
+    </div>
+  </section>
+</main>

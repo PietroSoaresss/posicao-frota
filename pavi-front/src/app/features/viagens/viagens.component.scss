@@ -1,0 +1,40 @@
+/* Component-specific styles - shared styles are in styles.scss */
+
+.pv-route-cell {
+  max-width: 220px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.pv-agenda {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 142px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.pv-agenda-date {
+  font-size: 13px;
+  font-weight: 700;
+  color: #16324f;
+}
+
+.pv-agenda-separator {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.pv-agenda-time {
+  font-size: 13px;
+  font-weight: 700;
+  color: #31506f;
+}
+
+.pv-agenda.is-empty .pv-agenda-date {
+  font-weight: 600;
+  color: #64748b;
+}

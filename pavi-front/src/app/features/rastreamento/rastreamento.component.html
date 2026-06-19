@@ -1,0 +1,170 @@
+<app-page-title icon="map" [title]="'Rastreamento'" [count]="trips().length">
+  <div class="trk-sync" *ngIf="status() as s" [title]="syncTitle()">
+    <span class="trk-sync-dot" [ngClass]="syncDotClass()"></span>
+    <span class="trk-sync-label">Sascar</span>
+    <span class="trk-sync-age">{{ s.lastSync?.finishedAt ? ageLabel(s.lastSync?.finishedAt) : '-' }}</span>
+  </div>
+  <button class="pv-btn-secondary" (click)="load()" [disabled]="loading() || syncing()">
+    <app-icon name="refresh" [size]="14"></app-icon>Atualizar
+  </button>
+  <button class="pv-btn-primary" (click)="syncNow()" [disabled]="loading() || syncing()">
+    <app-icon name="target" [size]="14"></app-icon>{{ syncing() ? 'Sincronizando...' : 'Sincronizar' }}
+  </button>
+</app-page-title>
+
+<div class="pv-kpi-strip">
+  <div class="pv-kpi">
+    <div class="pv-kpi-label">Viagens ativas</div>
+    <div class="pv-kpi-value">{{ kpis().total }}</div>
+    <div class="pv-kpi-hint">em rota hoje</div>
+  </div>
+  <div class="pv-kpi pv-kpi-ok">
+    <div class="pv-kpi-label">Online</div>
+    <div class="pv-kpi-value">{{ kpis().online }}</div>
+    <div class="pv-kpi-hint">posição recente</div>
+  </div>
+  <div class="pv-kpi pv-kpi-warn">
+    <div class="pv-kpi-label">Atrasados</div>
+    <div class="pv-kpi-value">{{ kpis().stale }}</div>
+    <div class="pv-kpi-hint">há mais de 30 min</div>
+  </div>
+  <div class="pv-kpi pv-kpi-alert">
+    <div class="pv-kpi-label">Sem posição</div>
+    <div class="pv-kpi-value">{{ kpis().missing }}</div>
+    <div class="pv-kpi-hint">nenhum pacote Sascar</div>
+  </div>
+  <div class="pv-kpi pv-kpi-info">
+    <div class="pv-kpi-label">Velocidade média</div>
+    <div class="pv-kpi-value">{{ kpis().averageSpeed }} <small>km/h</small></div>
+    <div class="pv-kpi-hint">veículos com posição</div>
+  </div>
+</div>
+
+<div class="pv-filter-bar">
+  <div class="pv-filter-row">
+    <div class="pv-filter-field pv-filter-search">
+      <label>Buscar</label>
+      <div class="pv-input-wrap">
+        <app-icon name="search" [size]="14"></app-icon>
+        <input
+          type="text"
+          placeholder="Placa, motorista, viagem, origem..."
+          [value]="query()"
+          (input)="setQuery($any($event.target).value)"
+        />
+      </div>
+    </div>
+    <div class="pv-filter-field">
+      <label>Situação</label>
+      <select [value]="filter()" (change)="setFilter($any($event.target).value)">
+        <option value="todos">Todos</option>
+        <option value="online">Online</option>
+        <option value="atrasados">Atrasados</option>
+        <option value="sem-posicao">Sem posição</option>
+      </select>
+    </div>
+    <button class="pv-btn-secondary pv-filter-clear" (click)="clearFilters()">
+      <app-icon name="close" [size]="14"></app-icon>Limpar
+    </button>
+  </div>
+</div>
+
+<div class="trk-grid">
+  <div class="trk-map-card">
+    <div id="tracking-map" class="trk-map" [class.is-loading]="loading()"></div>
+
+    <div class="trk-map-tools">
+      <button class="trk-recenter" (click)="recenter()" title="Centralizar a frota no mapa">
+        <app-icon name="target" [size]="14"></app-icon>Centralizar
+      </button>
+    </div>
+
+    <div class="trk-legend">
+      <span><i class="is-online"></i>Online</span>
+      <span><i class="is-stale"></i>Atrasado</span>
+    </div>
+
+    <div class="trk-map-msg" *ngIf="loading()">Carregando rastreamento...</div>
+    <div class="trk-map-msg" *ngIf="!loading() && filteredTrips().length === 0">
+      Nenhuma viagem ativa para os filtros atuais.
+    </div>
+
+    <div class="trk-toast" *ngIf="error()">
+      <app-icon name="alert" [size]="16"></app-icon>
+      <span>{{ error() }}</span>
+    </div>
+  </div>
+
+  <aside class="trk-side">
+    <div class="trk-side-header">
+      <h2>Caminhões em rota</h2>
+      <span>{{ filteredTrips().length }} de {{ trips().length }}</span>
+    </div>
+
+    <div class="trk-list">
+      <div class="trk-list-empty" *ngIf="filteredTrips().length === 0">
+        Nenhuma viagem encontrada.
+      </div>
+
+      <div
+        class="trk-card-shell"
+        *ngFor="let trip of filteredTrips()"
+        [ngClass]="healthClass(trip)"
+        [class.is-active]="isSelected(trip)"
+      >
+        <button
+          type="button"
+          class="trk-card"
+          [ngClass]="healthClass(trip)"
+          [class.is-active]="isSelected(trip)"
+          [attr.aria-expanded]="isSelected(trip)"
+          (click)="selectTrip(trip)"
+        >
+          <div class="trk-card-head">
+            <span class="pv-mono-code">{{ trip.tripCode }}</span>
+            <span class="tracking-health" [ngClass]="healthClass(trip)">{{ healthLabel(trip) }}</span>
+          </div>
+          <div class="trk-card-main">
+            <strong>{{ trip.horsePlate }}</strong>
+            <span>{{ trip.driverName }}</span>
+          </div>
+          <div class="trk-card-route">
+            <span>{{ trip.originLabel }}</span>
+            <app-icon name="arrow-r" [size]="12"></app-icon>
+            <span>{{ trip.destinationLabel }}</span>
+          </div>
+          <div class="trk-card-meta">
+            <span>{{ locationLabel(trip.latestPosition) }}</span>
+            <span>{{ ageLabel(trip.latestPosition?.packetDateUtc) }}</span>
+          </div>
+        </button>
+
+        <div class="trk-card-detail" *ngIf="isSelected(trip)">
+          <div class="trk-card-detail-head">
+            <app-status-pill [status]="statusForPill(trip.status)" size="sm"></app-status-pill>
+            <span>{{ formatDateTime(trip.latestPosition?.packetDateUtc) }}</span>
+          </div>
+
+          <dl>
+            <div>
+              <dt>Carreta</dt>
+              <dd>{{ trip.trailerPlate || '-' }}</dd>
+            </div>
+            <div>
+              <dt>Localização</dt>
+              <dd>{{ locationLabel(trip.latestPosition) }}</dd>
+            </div>
+            <div>
+              <dt>Velocidade</dt>
+              <dd>{{ trip.latestPosition?.speed ?? '-' }} km/h</dd>
+            </div>
+            <div>
+              <dt>Ignição</dt>
+              <dd>{{ trip.latestPosition?.ignition === 1 ? 'Ligada' : trip.latestPosition ? 'Desligada' : '-' }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>

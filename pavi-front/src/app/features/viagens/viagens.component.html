@@ -1,0 +1,109 @@
+<app-page-title icon="route" [title]="'Posicao Frota'" [count]="filtered().length">
+  <button class="pv-btn-secondary" (click)="exportToPdf()">
+    <app-icon name="download" [size]="14"></app-icon>Exportar
+  </button>
+  <button class="pv-btn-primary" (click)="openCreate()">
+    <app-icon name="plus" [size]="14"></app-icon>Nova posicao
+  </button>
+</app-page-title>
+
+<div class="pv-filter-bar">
+  <div class="pv-filter-row pv-filter-row--extended">
+    <div class="pv-filter-field pv-filter-search">
+      <label>Buscar</label>
+      <div class="pv-input-wrap">
+        <app-icon name="search" [size]="14"></app-icon>
+        <input type="text" placeholder="Motorista, placa, rota, cliente..." [value]="q()" (input)="onQInput($event)" />
+      </div>
+    </div>
+    <div class="pv-filter-field">
+      <label>Inicio do periodo</label>
+      <app-date-input [compact]="true" [value]="dataIni()" (valueChange)="dataIni.set($event)"></app-date-input>
+    </div>
+    <div class="pv-filter-field">
+      <label>Fim do periodo</label>
+      <app-date-input [compact]="true" [value]="dataFim()" (valueChange)="dataFim.set($event)"></app-date-input>
+    </div>
+    <div class="pv-filter-field">
+      <label>Status</label>
+      <select [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+        <option *ngFor="let s of STATUS_FILTERS" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+    <div class="pv-filter-field">
+      <label>Gestor</label>
+      <select [value]="gestorFilter()" (change)="gestorFilter.set($any($event.target).value)">
+        <option *ngFor="let gestor of gestorOptions()" [value]="gestor.value">{{ gestor.label }}</option>
+      </select>
+    </div>
+    <button class="pv-btn-secondary pv-filter-clear" (click)="clearFilters()">
+      <app-icon name="close" [size]="14"></app-icon>Limpar
+    </button>
+  </div>
+</div>
+
+<div class="pv-table-card pv-table-card-wide">
+  <table class="pv-table pv-table-a">
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Motorista</th>
+        <th>Cavalo</th>
+        <th>Carreta</th>
+        <th>Origem</th>
+        <th>Destino</th>
+        <th>TNF</th>
+        <th>Agenda</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="filtered().length === 0">
+        <td colspan="9" class="pv-empty">Nenhuma posicao encontrada com os filtros aplicados.</td>
+      </tr>
+      <tr *ngFor="let v of filtered(); let i = index; trackBy: trackByViagem" class="pv-row pv-row-static"
+        [class.is-focus]="focusIdx() === i" [style.--manager-color]="gestorColor(v)" (mouseenter)="setFocus(i)">
+        <td><app-status-pill [status]="v.status" size="sm"></app-status-pill></td>
+        <td>{{ v.motorista?.nome }}</td>
+        <td class="pv-mono">{{ v.cavalo?.placa }}</td>
+        <td class="pv-mono">{{ v.carreta?.placa }}</td>
+        <td class="pv-route-cell">{{ origemDisplay(v) }}</td>
+        <td class="pv-route-cell">{{ destinoDisplay(v) }}</td>
+        <td class="pv-mono">{{ v.tnf }}</td>
+        <td class="pv-cell-wide">
+          <div class="pv-agenda" [class.is-empty]="!agendaHasValue(v)">
+            <span class="pv-agenda-date">{{ agendaDateDisplay(v) }}</span>
+            <span class="pv-agenda-separator" *ngIf="agendaTimeDisplay(v)">as</span>
+            <span class="pv-agenda-time" *ngIf="agendaTimeDisplay(v)">{{ agendaTimeDisplay(v) }}</span>
+          </div>
+        </td>
+        <td class="pv-td-actions">
+          <button class="pv-eye-btn" (click)="openDetail(v)" title="Ver detalhes">
+            <app-icon name="eye" [size]="15"></app-icon>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="pv-table-footer">
+    <div>Mostrando <strong>{{ filtered().length }}</strong> de <strong>{{ viagens().length }}</strong> posicoes</div>
+    <div class="pv-pager">
+      <button class="pv-pager-btn" disabled>
+        <app-icon name="chevron-l" [size]="12"></app-icon>
+      </button>
+      <span class="pv-pager-info pv-mono">1 / 1</span>
+      <button class="pv-pager-btn" disabled>
+        <app-icon name="chevron-r" [size]="12"></app-icon>
+      </button>
+    </div>
+  </div>
+</div>
+
+<app-detail-modal
+  [viagem]="selected()"
+  (onClose)="closeDetail()"
+  (onDelete)="onDeletedViagem($event)"
+  (onSave)="onSavedDetail($event)"
+></app-detail-modal>
+
+<app-create-viagem-modal *ngIf="showCreate()" (onClose)="closeCreate()" (onSave)="onCreatedViagem($event)"></app-create-viagem-modal>

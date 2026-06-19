@@ -1,0 +1,330 @@
+<app-page-title icon="route" [title]="'Vínculos Motorista x Veículo'" [count]="filtered().length">
+  <button class="pv-btn-primary" (click)="openCreate()">
+    <app-icon name="plus" [size]="14"></app-icon>Novo vínculo
+  </button>
+</app-page-title>
+
+<div class="pv-kpi-strip">
+  <div class="pv-kpi pv-kpi-default">
+    <div class="pv-kpi-label">Total de vínculos</div>
+    <div class="pv-kpi-value">{{ kpis().total }}</div>
+    <div class="pv-kpi-hint">cadastrados</div>
+  </div>
+  <div class="pv-kpi pv-kpi-ok">
+    <div class="pv-kpi-label">Ativos</div>
+    <div class="pv-kpi-value">{{ kpis().ativos }}</div>
+    <div class="pv-kpi-hint">sem data fim</div>
+  </div>
+  <div class="pv-kpi pv-kpi-warn">
+    <div class="pv-kpi-label">Encerrados</div>
+    <div class="pv-kpi-value">{{ kpis().encerrados }}</div>
+    <div class="pv-kpi-hint">com data fim</div>
+  </div>
+</div>
+
+<div class="pv-filter-bar">
+  <div class="pv-filter-row motorista-veiculos-filter-row">
+    <div class="pv-filter-field pv-filter-search">
+      <label>Buscar</label>
+      <div class="pv-input-wrap">
+        <app-icon name="search" [size]="14"></app-icon>
+        <input type="text" placeholder="Motorista, cavalo, carreta..." [value]="q()" (input)="q.set($any($event.target).value)" />
+      </div>
+    </div>
+
+    <div class="pv-filter-field">
+      <label>Motorista</label>
+      <select [value]="motoristaFilter()" (change)="motoristaFilter.set($any($event.target).value)">
+        <option value="Todos">Todos</option>
+        <option *ngFor="let motorista of motoristaOptions()" [value]="motorista.value">{{ motorista.label }}</option>
+      </select>
+    </div>
+
+    <div class="pv-filter-field">
+      <label>Cavalo</label>
+      <select [value]="cavaloFilter()" (change)="cavaloFilter.set($any($event.target).value)">
+        <option value="Todos">Todos</option>
+        <option *ngFor="let cavalo of cavaloOptions()" [value]="cavalo.value">{{ cavalo.label }}</option>
+      </select>
+    </div>
+
+    <div class="pv-filter-field">
+      <label>Carreta</label>
+      <select [value]="carretaFilter()" (change)="carretaFilter.set($any($event.target).value)">
+        <option value="Todos">Todos</option>
+        <option *ngFor="let carreta of carretaOptions()" [value]="carreta.value">{{ carreta.label }}</option>
+      </select>
+    </div>
+
+    <div class="pv-filter-field">
+      <label>Status</label>
+      <select [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+        <option value="Todos">Todos</option>
+        <option value="Ativos">Ativos</option>
+        <option value="Encerrados">Encerrados</option>
+      </select>
+    </div>
+
+    <button class="pv-btn-secondary pv-filter-clear" (click)="clearFilters()">
+      <app-icon name="close" [size]="14"></app-icon>Limpar
+    </button>
+  </div>
+</div>
+
+<div class="pv-table-card">
+  <table class="pv-table pv-table-a">
+    <thead>
+      <tr>
+        <th class="pv-th-sort" (click)="toggleSort('codigo')">
+          <span>Código</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('codigo')">
+            <app-icon [name]="sortDirFor('codigo')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th class="pv-th-sort" (click)="toggleSort('motorista')">
+          <span>Motorista</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('motorista')">
+            <app-icon [name]="sortDirFor('motorista')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th class="pv-th-sort" (click)="toggleSort('cavalo')">
+          <span>Cavalo</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('cavalo')">
+            <app-icon [name]="sortDirFor('cavalo')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th class="pv-th-sort" (click)="toggleSort('carreta')">
+          <span>Carreta</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('carreta')">
+            <app-icon [name]="sortDirFor('carreta')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th class="pv-th-sort" (click)="toggleSort('inicio')">
+          <span>Início</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('inicio')">
+            <app-icon [name]="sortDirFor('inicio')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th class="pv-th-sort" (click)="toggleSort('fim')">
+          <span>Fim</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('fim')">
+            <app-icon [name]="sortDirFor('fim')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th class="pv-th-sort" (click)="toggleSort('status')">
+          <span>Status</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('status')">
+            <app-icon [name]="sortDirFor('status')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="filtered().length === 0">
+        <td colspan="8" class="pv-empty">Nenhum vínculo encontrado.</td>
+      </tr>
+      <tr *ngFor="let vinculo of filtered(); trackBy: trackByVinculo" class="pv-row pv-row-static">
+        <td class="pv-mono-code">#{{ vinculo.codigo.toString().padStart(3, '0') }}</td>
+        <td>
+          <div class="mv-person-cell">
+            <div class="mv-avatar">{{ motoristaLabel(vinculo.cod_motorista).slice(0, 2).toUpperCase() }}</div>
+            <span>{{ motoristaLabel(vinculo.cod_motorista) }}</span>
+          </div>
+        </td>
+        <td>
+          <div class="mv-vehicle-cell">
+            <app-icon name="truck" [size]="15"></app-icon>
+            <span class="pv-mono">{{ veiculoPlaca(vinculo.cod_cavalo) }}</span>
+            <small>Cavalo</small>
+          </div>
+        </td>
+        <td>
+          <div class="mv-vehicle-cell">
+            <app-icon name="truck" [size]="15"></app-icon>
+            <span class="pv-mono">{{ veiculoPlaca(vinculo.cod_carreta) }}</span>
+            <small>Carreta</small>
+          </div>
+        </td>
+        <td class="pv-mono">{{ fmtData(vinculo.inicio) }}</td>
+        <td class="pv-mono">{{ vinculo.fim ? fmtData(vinculo.fim) : 'Sem fim' }}</td>
+        <td>
+          <span class="mv-status" [class.is-active]="isAtivo(vinculo)" [class.is-closed]="!isAtivo(vinculo)">
+            {{ statusLabel(vinculo) }}
+          </span>
+        </td>
+        <td class="pv-td-actions">
+          <div class="pv-action-group">
+            <button class="pv-eye-btn" (click)="openEdit(vinculo)" title="Editar vínculo">
+              <app-icon name="eye" [size]="15"></app-icon>
+            </button>
+            <button class="pv-eye-btn" (click)="openDelete(vinculo)" title="Excluir vínculo">
+              <app-icon name="trash" [size]="15"></app-icon>
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pv-table-footer">
+    <div>Mostrando <strong>{{ filtered().length }}</strong> de <strong>{{ vinculos().length }}</strong> vínculos</div>
+    <div class="pv-pager">
+      <button class="pv-pager-btn" disabled>
+        <app-icon name="chevron-l" [size]="12"></app-icon>
+      </button>
+      <span class="pv-pager-info pv-mono">1 / 1</span>
+      <button class="pv-pager-btn" disabled>
+        <app-icon name="chevron-r" [size]="12"></app-icon>
+      </button>
+    </div>
+  </div>
+</div>
+
+<ng-container *ngIf="showForm()">
+  <div class="pv-overlay" (click)="closeForm()"></div>
+  <div class="pv-modal-wrap" role="dialog" aria-modal="true" [attr.aria-label]="formTitle">
+    <div class="pv-modal pv-modal-edit">
+      <header class="pv-modal-header">
+        <div class="pv-modal-header-left">
+          <div>
+            <div class="pv-modal-kicker">{{ formTitle }}</div>
+            <div class="pv-modal-title">
+              <div class="mv-modal-icon">
+                <app-icon name="route" [size]="16"></app-icon>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="pv-icon-btn pv-icon-btn-light" (click)="closeForm()" title="Fechar">
+          <app-icon name="close" [size]="16"></app-icon>
+        </button>
+      </header>
+
+      <div class="pv-modal-body">
+        <div class="pv-modal-body-inner">
+          <section class="pv-modal-section">
+            <div class="pv-cadastro-head">
+              <div class="pv-entity-icon pv-entity-icon-lg">
+                <app-icon name="route" [size]="22"></app-icon>
+              </div>
+              <div>
+                <div class="pv-cadastro-name">
+                  {{ motoristaLabel(+form().cod_motorista) }}
+                </div>
+                <div class="pv-cadastro-sub">
+                  {{ veiculoLabel(+form().cod_cavalo) }} + {{ veiculoLabel(+form().cod_carreta) }}
+                  - código <span class="pv-mono">#{{ selectedCodigo }}</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="pv-modal-section">
+            <div class="pv-modal-section-title">DADOS DO VÍNCULO</div>
+            <div *ngIf="formError()" class="mv-form-error">{{ formError() }}</div>
+            <div class="mv-form-grid">
+              <label class="mv-field">
+                <span>Motorista *</span>
+                <select [ngModel]="form().cod_motorista" (ngModelChange)="upd('cod_motorista', $event)">
+                  <option value="">Selecione</option>
+                  <option *ngFor="let motorista of motoristaOptions()" [value]="motorista.value">{{ motorista.label }}</option>
+                </select>
+              </label>
+
+              <label class="mv-field">
+                <span>Cavalo *</span>
+                <select [ngModel]="form().cod_cavalo" (ngModelChange)="upd('cod_cavalo', $event)">
+                  <option value="">Selecione</option>
+                  <option *ngFor="let cavalo of cavaloOptions()" [value]="cavalo.value">{{ cavalo.label }}</option>
+                </select>
+              </label>
+
+              <label class="mv-field">
+                <span>Carreta *</span>
+                <select [ngModel]="form().cod_carreta" (ngModelChange)="upd('cod_carreta', $event)">
+                  <option value="">Selecione</option>
+                  <option *ngFor="let carreta of carretaOptions()" [value]="carreta.value">{{ carreta.label }}</option>
+                </select>
+              </label>
+
+              <label class="mv-field">
+                <span>Início *</span>
+                <input type="date" [ngModel]="form().inicio" (ngModelChange)="upd('inicio', $event)" />
+              </label>
+
+              <label class="mv-field">
+                <span>Fim</span>
+                <input type="date" [ngModel]="form().fim" (ngModelChange)="upd('fim', $event)" />
+              </label>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <footer class="pv-modal-footer">
+        <div class="pv-modal-footer-left"></div>
+        <div class="pv-modal-footer-right">
+          <button class="pv-btn-secondary" (click)="closeForm()" [disabled]="isSaving()">Cancelar</button>
+          <button class="pv-btn-primary" (click)="save()" [disabled]="isSaving()">
+            <app-icon name="check" [size]="13"></app-icon>{{ isSaving() ? 'Salvando...' : 'Salvar' }}
+          </button>
+        </div>
+      </footer>
+    </div>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="deleteTarget() as vinculo">
+  <div class="pv-overlay" (click)="closeDelete()"></div>
+  <div class="pv-modal-wrap" role="dialog" aria-modal="true" aria-label="Confirmar exclusão de vínculo">
+    <div class="pv-modal mv-confirm-modal">
+      <header class="pv-modal-header mv-confirm-header">
+        <div class="pv-modal-header-left">
+          <div class="mv-confirm-icon">
+            <app-icon name="trash" [size]="18"></app-icon>
+          </div>
+          <div>
+            <div class="pv-modal-kicker">EXCLUIR VÍNCULO</div>
+            <div class="pv-modal-title">Confirme a remoção do cadastro</div>
+          </div>
+        </div>
+        <button class="pv-icon-btn pv-icon-btn-light" (click)="closeDelete()" title="Fechar">
+          <app-icon name="close" [size]="16"></app-icon>
+        </button>
+      </header>
+
+      <div class="pv-modal-body">
+        <section class="pv-modal-section">
+          <div class="pv-cadastro-head">
+            <div class="pv-entity-icon pv-entity-icon-lg">
+              <app-icon name="route" [size]="22"></app-icon>
+            </div>
+            <div>
+              <div class="pv-cadastro-name">{{ motoristaLabel(vinculo.cod_motorista) }}</div>
+              <div class="pv-cadastro-sub">
+                {{ veiculoLabel(vinculo.cod_cavalo) }} + {{ veiculoLabel(vinculo.cod_carreta) }}
+                - {{ fmtData(vinculo.inicio) }} até {{ vinculo.fim ? fmtData(vinculo.fim) : 'sem fim' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="mv-confirm-warning">
+            <app-icon name="alert" [size]="14"></app-icon>
+            <span>Essa ação remove o vínculo permanentemente.</span>
+          </div>
+        </section>
+      </div>
+
+      <footer class="pv-modal-footer">
+        <div class="pv-modal-footer-left"></div>
+        <div class="pv-modal-footer-right">
+          <button class="pv-btn-secondary" (click)="closeDelete()" [disabled]="isDeleting()">Cancelar</button>
+          <button class="pv-btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+            <app-icon name="trash" [size]="13"></app-icon>{{ isDeleting() ? 'Excluindo...' : 'Excluir' }}
+          </button>
+        </div>
+      </footer>
+    </div>
+  </div>
+</ng-container>

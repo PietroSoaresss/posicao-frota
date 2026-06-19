@@ -1,0 +1,136 @@
+<app-page-title icon="user" [title]="'Usuários'" [count]="filtered().length">
+  <button class="pv-btn-secondary" (click)="reload()" [disabled]="isLoading()">
+    <app-icon name="report" [size]="14"></app-icon>Recarregar
+  </button>
+  <button class="pv-btn-primary" (click)="openCreate()">
+    <app-icon name="plus" [size]="14"></app-icon>Novo usuário
+  </button>
+</app-page-title>
+
+<div class="pv-kpi-strip users-kpis">
+  <div class="pv-kpi pv-kpi-default">
+    <div class="pv-kpi-label">Total de usuários</div>
+    <div class="pv-kpi-value">{{ kpis().total }}</div>
+    <div class="pv-kpi-hint">cadastrados</div>
+  </div>
+  <div class="pv-kpi pv-kpi-alert">
+    <div class="pv-kpi-label">Administradores</div>
+    <div class="pv-kpi-value">{{ kpis().admins }}</div>
+    <div class="pv-kpi-hint">com acesso completo</div>
+  </div>
+  <div class="pv-kpi pv-kpi-info">
+    <div class="pv-kpi-label">Operadores</div>
+    <div class="pv-kpi-value">{{ kpis().operadores }}</div>
+    <div class="pv-kpi-hint">com acesso operacional</div>
+  </div>
+</div>
+
+<div class="pv-filter-bar">
+  <div class="pv-filter-row users-filter-row">
+    <div class="pv-filter-field pv-filter-search">
+      <label>Buscar</label>
+      <div class="pv-input-wrap">
+        <app-icon name="search" [size]="14"></app-icon>
+        <input type="text" placeholder="Username ou perfil…" [value]="q()" (input)="q.set($any($event.target).value)" />
+      </div>
+    </div>
+    <button class="pv-btn-secondary pv-filter-clear" (click)="clearFilters()">
+      <app-icon name="close" [size]="14"></app-icon>Limpar
+    </button>
+  </div>
+</div>
+
+<div *ngIf="pageError()" class="users-error-banner" role="alert">
+  <app-icon name="alert" [size]="14"></app-icon>
+  <span>{{ pageError() }}</span>
+</div>
+
+<div class="pv-table-card">
+  <table class="pv-table pv-table-a">
+    <thead>
+      <tr>
+        <th class="pv-th-sort" (click)="toggleSort('codigo')">
+          <span>Código</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('codigo')">
+            <app-icon [name]="sortDirFor('codigo')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th class="pv-th-sort" (click)="toggleSort('username')">
+          <span>Username</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('username')">
+            <app-icon [name]="sortDirFor('username')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th class="pv-th-sort" (click)="toggleSort('role')">
+          <span>Perfil</span>
+          <span class="pv-sort-caret" [class.is-active]="isSorted('role')">
+            <app-icon [name]="sortDirFor('role')" [size]="11"></app-icon>
+          </span>
+        </th>
+        <th>Cor</th>
+        <th class="pv-th-right">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="filtered().length === 0">
+        <td colspan="5" class="pv-empty">Nenhum usuário encontrado.</td>
+      </tr>
+      <tr *ngFor="let usuario of filtered(); trackBy: trackByUsuario" class="pv-row pv-row-static">
+        <td class="pv-mono-code">#{{ usuario.codigo.toString().padStart(3, '0') }}</td>
+        <td>
+          <div class="users-user-cell">
+            <div class="users-user-avatar" [style.background]="usuario.color">{{ initials(usuario.username) }}</div>
+            <div>
+              <div class="users-user-name">{{ usuario.username }}</div>
+              <div class="users-user-meta" *ngIf="isCurrentUser(usuario)">usuário atual</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="users-role-badge"
+            [class.users-role-admin]="usuario.role === 'ADMIN'"
+            [class.users-role-operador]="usuario.role === 'OPERADOR'">
+            {{ roleLabel(usuario.role) }}
+          </span>
+        </td>
+        <td>
+          <span class="users-color-cell">
+            <i [style.background]="usuario.color"></i>
+            <span class="pv-mono">{{ usuario.color }}</span>
+          </span>
+        </td>
+        <td class="pv-td-actions users-actions-cell">
+          <div class="users-action-group">
+            <button class="users-action-btn" (click)="openEdit(usuario)" title="Editar usuário">
+              <app-icon name="edit" [size]="14"></app-icon>
+            </button>
+            <button class="users-action-btn users-action-btn-danger" (click)="openDeleteConfirm(usuario)"
+              [disabled]="isCurrentUser(usuario)"
+              [title]="isCurrentUser(usuario) ? 'Você não pode excluir o próprio usuário' : 'Excluir usuário'">
+              <app-icon name="trash" [size]="14"></app-icon>
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="pv-table-footer">
+    <div>Mostrando <strong>{{ filtered().length }}</strong> de <strong>{{ usuarios().length }}</strong> usuários</div>
+    <div class="pv-pager">
+      <button class="pv-pager-btn" disabled>
+        <app-icon name="chevron-l" [size]="12"></app-icon>
+      </button>
+      <span class="pv-pager-info pv-mono">1 / 1</span>
+      <button class="pv-pager-btn" disabled>
+        <app-icon name="chevron-r" [size]="12"></app-icon>
+      </button>
+    </div>
+  </div>
+</div>
+
+<app-create-usuario-modal *ngIf="showCreate()" [usuario]="selectedUsuario()"
+  [currentUsername]="currentUser()?.username || null" [errorMessage]="modalError() || ''"
+  (onClose)="closeModal()" (onSave)="onSaveUsuario($event)"></app-create-usuario-modal>
+
+<app-confirm-delete-usuario-modal *ngIf="deleteTarget()" [usuario]="deleteTarget()!" [isDeleting]="isDeleting()"
+  (onClose)="closeDeleteConfirm()" (onConfirm)="confirmDeleteUsuario()"></app-confirm-delete-usuario-modal>

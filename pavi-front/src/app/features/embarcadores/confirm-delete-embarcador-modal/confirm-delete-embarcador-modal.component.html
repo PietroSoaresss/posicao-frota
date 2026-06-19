@@ -1,0 +1,52 @@
+<div class="pv-overlay" (click)="close()"></div>
+<div class="pv-modal-wrap" role="dialog" aria-modal="true" aria-label="Confirmar exclusão de cliente">
+  <div class="pv-modal embarcadores-confirm-modal">
+    <header class="pv-modal-header embarcadores-confirm-header">
+      <div class="pv-modal-header-left">
+        <div class="embarcadores-confirm-icon">
+          <app-icon name="trash" [size]="18"></app-icon>
+        </div>
+        <div>
+          <div class="pv-modal-kicker">EXCLUIR CLIENTE</div>
+          <div class="pv-modal-title">Confirme a remoção do cadastro</div>
+        </div>
+      </div>
+      <button class="pv-icon-btn pv-icon-btn-light" (click)="close()" title="Fechar">
+        <app-icon name="close" [size]="16"></app-icon>
+      </button>
+    </header>
+
+    <div class="pv-modal-body">
+      <section class="pv-modal-section">
+        <div class="pv-cadastro-head">
+          <div class="pv-entity-avatar pv-entity-avatar-lg embarcadores-confirm-avatar">
+            <app-icon name="building" [size]="20"></app-icon>
+          </div>
+          <div>
+            <div class="pv-cadastro-name">{{ empresa.razao_social }}</div>
+            <div class="pv-cadastro-sub">
+              CNPJ <span class="pv-mono">{{ empresa.cnpj }}</span> · código <span class="pv-mono">#{{ empresa.codigo.toString().padStart(3, '0') }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="embarcadores-confirm-warning">
+          <app-icon name="alert" [size]="14"></app-icon>
+          <span>Essa ação remove o cliente permanentemente e não pode ser desfeita.</span>
+        </div>
+      </section>
+    </div>
+
+    <footer class="pv-modal-footer">
+      <div class="pv-modal-footer-left">
+        <span class="embarcadores-confirm-footnote">Revise o cadastro antes de excluir.</span>
+      </div>
+      <div class="pv-modal-footer-right">
+        <button class="pv-btn-secondary" (click)="close()" [disabled]="isDeleting">Cancelar</button>
+        <button class="pv-btn-danger" (click)="confirm()" [disabled]="isDeleting">
+          <app-icon name="trash" [size]="13"></app-icon>{{ isDeleting ? 'Excluindo...' : 'Excluir cliente' }}
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>
